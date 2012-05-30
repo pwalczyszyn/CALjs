@@ -6,38 +6,56 @@
  * Time: 12:53 PM
  */
 
-define(['text!Calendar.tpl'], function (CalendarTemplate) {
+define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl'],
+    function (Component, WeekView, MonthView, CalendarTpl) {
 
-    var Calendar = function (options) {
-        if (options) {
+        var Calendar = function (options) {
+            // Calling base Component type constructor
+            Component.call(this, options);
 
-            this.setElement(options.el);
-            this.setModel(options.model);
-        }
-    };
+            /**
+             * Instance of WeekView
+             * @type {WeekView}
+             */
+            this.weekView = new WeekView({model:this.model, date:this.date});
 
-    Calendar.prototype.setElement = function (el) {
-        if (el) {
-            this.$el = $(el); // el can be either CSS selector or DOM element
-            this.el = this.$el[0];
-        }
-        return this;
-    };
+            /**
+             * Instance of MonthView
+             * @type {MonthView}
+             */
+            this.monthView = null;
 
-    Calendar.prototype.setModel = function (model) {
-        if (model) this.model = model;
-        return this;
-    };
+            /**
+             * Current visible view
+             * @type {MonthView || WeekView}
+             */
+            this.currentView = this.weekView;
 
-    Calendar.prototype.render = function () {
+            /**
+             * Instance of NavigationBar
+             * @type {NavigationBar}
+             */
+            this.navigationBar = null;
 
-        // Creating new div container if necessary
-        if (!this.$el) this.setElement('<div/>');
+            /**
+             * Current calendar date
+             * @type {Date}
+             */
+            this.date = options && options.date ? options.date : new Date;
+        };
 
-        this.$el.html(CalendarTemplate);
+        Calendar.prototype = Object.create(Component.prototype);
 
-        return this;
-    };
+        Calendar.prototype.render = function () {
 
-    return Calendar;
-});
+            // Applying default calendar template
+            this.$el.html(CalendarTpl);
+
+            this.$el.append(this.currentView.el);
+            this.currentView.render();
+
+            return this;
+        };
+
+        return Calendar;
+    });

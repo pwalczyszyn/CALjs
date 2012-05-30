@@ -315,20 +315,382 @@ var requirejs, require, define;
 
 define("almond", function(){});
 
-/*
- RequireJS text 1.0.8 Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
- Available via the MIT or new BSD license.
- see: http://github.com/jrburke/requirejs for details
-*/
-(function(){var k=["Msxml2.XMLHTTP","Microsoft.XMLHTTP","Msxml2.XMLHTTP.4.0"],m=/^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,n=/<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,i=typeof location!=="undefined"&&location.href,o=i&&location.protocol&&location.protocol.replace(/\:/,""),p=i&&location.hostname,q=i&&(location.port||void 0),j=[];define('text',[],function(){var e,l;e={version:"1.0.8",strip:function(a){if(a){var a=a.replace(m,""),c=a.match(n);c&&(a=c[1])}else a="";return a},jsEscape:function(a){return a.replace(/(['\\])/g,
-"\\$1").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r")},createXhr:function(){var a,c,b;if(typeof XMLHttpRequest!=="undefined")return new XMLHttpRequest;else if(typeof ActiveXObject!=="undefined")for(c=0;c<3;c++){b=k[c];try{a=new ActiveXObject(b)}catch(f){}if(a){k=[b];break}}return a},parseName:function(a){var c=!1,b=a.indexOf("."),f=a.substring(0,b),a=a.substring(b+1,a.length),b=a.indexOf("!");b!==-1&&(c=a.substring(b+1,a.length),
-c=c==="strip",a=a.substring(0,b));return{moduleName:f,ext:a,strip:c}},xdRegExp:/^((\w+)\:)?\/\/([^\/\\]+)/,useXhr:function(a,c,b,f){var d=e.xdRegExp.exec(a),g;if(!d)return!0;a=d[2];d=d[3];d=d.split(":");g=d[1];d=d[0];return(!a||a===c)&&(!d||d===b)&&(!g&&!d||g===f)},finishLoad:function(a,c,b,f,d){b=c?e.strip(b):b;d.isBuild&&(j[a]=b);f(b)},load:function(a,c,b,f){if(f.isBuild&&!f.inlineText)b();else{var d=e.parseName(a),g=d.moduleName+"."+d.ext,h=c.toUrl(g),r=f&&f.text&&f.text.useXhr||e.useXhr;!i||r(h,
-o,p,q)?e.get(h,function(c){e.finishLoad(a,d.strip,c,b,f)}):c([g],function(a){e.finishLoad(d.moduleName+"."+d.ext,d.strip,a,b,f)})}},write:function(a,c,b){if(j.hasOwnProperty(c)){var f=e.jsEscape(j[c]);b.asModule(a+"!"+c,"define(function () { return '"+f+"';});\n")}},writeFile:function(a,c,b,f,d){var c=e.parseName(c),g=c.moduleName+"."+c.ext,h=b.toUrl(c.moduleName+"."+c.ext)+".js";e.load(g,b,function(){var b=function(a){return f(h,a)};b.asModule=function(a,b){return f.asModule(a,h,b)};e.write(a,g,
-b,d)},d)}};if(e.createXhr())e.get=function(a,c){var b=e.createXhr();b.open("GET",a,!0);b.onreadystatechange=function(){b.readyState===4&&c(b.responseText)};b.send(null)};else if(typeof process!=="undefined"&&process.versions&&process.versions.node)l=require.nodeRequire("fs"),e.get=function(a,c){var b=l.readFileSync(a,"utf8");b.indexOf("\ufeff")===0&&(b=b.substring(1));c(b)};else if(typeof Packages!=="undefined")e.get=function(a,c){var b=new java.io.File(a),f=java.lang.System.getProperty("line.separator"),
-b=new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(b),"utf-8")),d,e,h="";try{d=new java.lang.StringBuffer;(e=b.readLine())&&e.length()&&e.charAt(0)===65279&&(e=e.substring(1));for(d.append(e);(e=b.readLine())!==null;)d.append(f),d.append(e);h=String(d.toString())}finally{b.close()}c(h)};return e})})();
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 5/25/12
+ * Time: 3:33 PM
+ */
 
-define('text!Calendar.tpl',[],function () { return '<caljs:Calendar xmlns:caljs="http://caljs.org/1.0">\n\n</caljs:Calendar>';});
+define('Component',[], function () {
 
+    var Component = function (options) {
+        this.isTouch = 'ontouchstart' in window;
+        this.MOUSE_DOWN_EV = this.isTouch ? 'touchstart' : 'mousedown';
+        this.MOUSE_MOVE_EV = this.isTouch ? 'touchmove' : 'mousemove';
+        this.MOUSE_UP_EV = this.isTouch ? 'touchend' : 'mouseup';
+
+        this.options = options;
+        if (this.options) {
+            if (this.options.el) this.setElement(this.options.el);
+            if (this.options.model) this.setModel(this.options.model);
+        }
+    };
+
+    Component.prototype.setElement = function (el) {
+        if (!el) el = '<div/>';
+        this.$el = $(el); // el can be either CSS selector or DOM element
+        this.el = this.$el[0];
+    };
+
+    Component.prototype.$ = function (selector) {
+        return this.$el.find(selector);
+    };
+
+    Component.prototype.setModel = function (model) {
+        this.model = model;
+    };
+
+    Component.prototype.render = function () {
+        return this;
+    };
+
+    return Component;
+});
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 5/29/12
+ * Time: 1:06 PM
+ */
+
+define('MonthView',['Component'], function (Component) {
+
+    var MonthView = function (options) {
+        Component.call(this, options);
+    };
+    MonthView.prototype = Object.create(Component.prototype);
+
+    MonthView.prototype.render = function () {
+
+        return this;
+    };
+
+    return MonthView;
+});
+/**
+ * @license RequireJS text 1.0.8 Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
+ * Available via the MIT or new BSD license.
+ * see: http://github.com/jrburke/requirejs for details
+ */
+/*jslint regexp: true, plusplus: true, sloppy: true */
+/*global require: false, XMLHttpRequest: false, ActiveXObject: false,
+  define: false, window: false, process: false, Packages: false,
+  java: false, location: false */
+
+(function () {
+    var progIds = ['Msxml2.XMLHTTP', 'Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.4.0'],
+        xmlRegExp = /^\s*<\?xml(\s)+version=[\'\"](\d)*.(\d)*[\'\"](\s)*\?>/im,
+        bodyRegExp = /<body[^>]*>\s*([\s\S]+)\s*<\/body>/im,
+        hasLocation = typeof location !== 'undefined' && location.href,
+        defaultProtocol = hasLocation && location.protocol && location.protocol.replace(/\:/, ''),
+        defaultHostName = hasLocation && location.hostname,
+        defaultPort = hasLocation && (location.port || undefined),
+        buildMap = [];
+
+    define('text',[],function () {
+        var text, fs;
+
+        text = {
+            version: '1.0.8',
+
+            strip: function (content) {
+                //Strips <?xml ...?> declarations so that external SVG and XML
+                //documents can be added to a document without worry. Also, if the string
+                //is an HTML document, only the part inside the body tag is returned.
+                if (content) {
+                    content = content.replace(xmlRegExp, "");
+                    var matches = content.match(bodyRegExp);
+                    if (matches) {
+                        content = matches[1];
+                    }
+                } else {
+                    content = "";
+                }
+                return content;
+            },
+
+            jsEscape: function (content) {
+                return content.replace(/(['\\])/g, '\\$1')
+                    .replace(/[\f]/g, "\\f")
+                    .replace(/[\b]/g, "\\b")
+                    .replace(/[\n]/g, "\\n")
+                    .replace(/[\t]/g, "\\t")
+                    .replace(/[\r]/g, "\\r");
+            },
+
+            createXhr: function () {
+                //Would love to dump the ActiveX crap in here. Need IE 6 to die first.
+                var xhr, i, progId;
+                if (typeof XMLHttpRequest !== "undefined") {
+                    return new XMLHttpRequest();
+                } else if (typeof ActiveXObject !== "undefined") {
+                    for (i = 0; i < 3; i++) {
+                        progId = progIds[i];
+                        try {
+                            xhr = new ActiveXObject(progId);
+                        } catch (e) {}
+
+                        if (xhr) {
+                            progIds = [progId];  // so faster next time
+                            break;
+                        }
+                    }
+                }
+
+                return xhr;
+            },
+
+            /**
+             * Parses a resource name into its component parts. Resource names
+             * look like: module/name.ext!strip, where the !strip part is
+             * optional.
+             * @param {String} name the resource name
+             * @returns {Object} with properties "moduleName", "ext" and "strip"
+             * where strip is a boolean.
+             */
+            parseName: function (name) {
+                var strip = false, index = name.indexOf("."),
+                    modName = name.substring(0, index),
+                    ext = name.substring(index + 1, name.length);
+
+                index = ext.indexOf("!");
+                if (index !== -1) {
+                    //Pull off the strip arg.
+                    strip = ext.substring(index + 1, ext.length);
+                    strip = strip === "strip";
+                    ext = ext.substring(0, index);
+                }
+
+                return {
+                    moduleName: modName,
+                    ext: ext,
+                    strip: strip
+                };
+            },
+
+            xdRegExp: /^((\w+)\:)?\/\/([^\/\\]+)/,
+
+            /**
+             * Is an URL on another domain. Only works for browser use, returns
+             * false in non-browser environments. Only used to know if an
+             * optimized .js version of a text resource should be loaded
+             * instead.
+             * @param {String} url
+             * @returns Boolean
+             */
+            useXhr: function (url, protocol, hostname, port) {
+                var match = text.xdRegExp.exec(url),
+                    uProtocol, uHostName, uPort;
+                if (!match) {
+                    return true;
+                }
+                uProtocol = match[2];
+                uHostName = match[3];
+
+                uHostName = uHostName.split(':');
+                uPort = uHostName[1];
+                uHostName = uHostName[0];
+
+                return (!uProtocol || uProtocol === protocol) &&
+                       (!uHostName || uHostName === hostname) &&
+                       ((!uPort && !uHostName) || uPort === port);
+            },
+
+            finishLoad: function (name, strip, content, onLoad, config) {
+                content = strip ? text.strip(content) : content;
+                if (config.isBuild) {
+                    buildMap[name] = content;
+                }
+                onLoad(content);
+            },
+
+            load: function (name, req, onLoad, config) {
+                //Name has format: some.module.filext!strip
+                //The strip part is optional.
+                //if strip is present, then that means only get the string contents
+                //inside a body tag in an HTML string. For XML/SVG content it means
+                //removing the <?xml ...?> declarations so the content can be inserted
+                //into the current doc without problems.
+
+                // Do not bother with the work if a build and text will
+                // not be inlined.
+                if (config.isBuild && !config.inlineText) {
+                    onLoad();
+                    return;
+                }
+
+                var parsed = text.parseName(name),
+                    nonStripName = parsed.moduleName + '.' + parsed.ext,
+                    url = req.toUrl(nonStripName),
+                    useXhr = (config && config.text && config.text.useXhr) ||
+                             text.useXhr;
+
+                //Load the text. Use XHR if possible and in a browser.
+                if (!hasLocation || useXhr(url, defaultProtocol, defaultHostName, defaultPort)) {
+                    text.get(url, function (content) {
+                        text.finishLoad(name, parsed.strip, content, onLoad, config);
+                    });
+                } else {
+                    //Need to fetch the resource across domains. Assume
+                    //the resource has been optimized into a JS module. Fetch
+                    //by the module name + extension, but do not include the
+                    //!strip part to avoid file system issues.
+                    req([nonStripName], function (content) {
+                        text.finishLoad(parsed.moduleName + '.' + parsed.ext,
+                                        parsed.strip, content, onLoad, config);
+                    });
+                }
+            },
+
+            write: function (pluginName, moduleName, write, config) {
+                if (buildMap.hasOwnProperty(moduleName)) {
+                    var content = text.jsEscape(buildMap[moduleName]);
+                    write.asModule(pluginName + "!" + moduleName,
+                                   "define(function () { return '" +
+                                       content +
+                                   "';});\n");
+                }
+            },
+
+            writeFile: function (pluginName, moduleName, req, write, config) {
+                var parsed = text.parseName(moduleName),
+                    nonStripName = parsed.moduleName + '.' + parsed.ext,
+                    //Use a '.js' file name so that it indicates it is a
+                    //script that can be loaded across domains.
+                    fileName = req.toUrl(parsed.moduleName + '.' +
+                                         parsed.ext) + '.js';
+
+                //Leverage own load() method to load plugin value, but only
+                //write out values that do not have the strip argument,
+                //to avoid any potential issues with ! in file names.
+                text.load(nonStripName, req, function (value) {
+                    //Use own write() method to construct full module value.
+                    //But need to create shell that translates writeFile's
+                    //write() to the right interface.
+                    var textWrite = function (contents) {
+                        return write(fileName, contents);
+                    };
+                    textWrite.asModule = function (moduleName, contents) {
+                        return write.asModule(moduleName, fileName, contents);
+                    };
+
+                    text.write(pluginName, nonStripName, textWrite, config);
+                }, config);
+            }
+        };
+
+        if (text.createXhr()) {
+            text.get = function (url, callback) {
+                var xhr = text.createXhr();
+                xhr.open('GET', url, true);
+                xhr.onreadystatechange = function (evt) {
+                    //Do not explicitly handle errors, those should be
+                    //visible via console output in the browser.
+                    if (xhr.readyState === 4) {
+                        callback(xhr.responseText);
+                    }
+                };
+                xhr.send(null);
+            };
+        } else if (typeof process !== "undefined" &&
+                 process.versions &&
+                 !!process.versions.node) {
+            //Using special require.nodeRequire, something added by r.js.
+            fs = require.nodeRequire('fs');
+
+            text.get = function (url, callback) {
+                var file = fs.readFileSync(url, 'utf8');
+                //Remove BOM (Byte Mark Order) from utf8 files if it is there.
+                if (file.indexOf('\uFEFF') === 0) {
+                    file = file.substring(1);
+                }
+                callback(file);
+            };
+        } else if (typeof Packages !== 'undefined') {
+            //Why Java, why is this so awkward?
+            text.get = function (url, callback) {
+                var encoding = "utf-8",
+                    file = new java.io.File(url),
+                    lineSeparator = java.lang.System.getProperty("line.separator"),
+                    input = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(file), encoding)),
+                    stringBuffer, line,
+                    content = '';
+                try {
+                    stringBuffer = new java.lang.StringBuffer();
+                    line = input.readLine();
+
+                    // Byte Order Mark (BOM) - The Unicode Standard, version 3.0, page 324
+                    // http://www.unicode.org/faq/utf_bom.html
+
+                    // Note that when we use utf-8, the BOM should appear as "EF BB BF", but it doesn't due to this bug in the JDK:
+                    // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4508058
+                    if (line && line.length() && line.charAt(0) === 0xfeff) {
+                        // Eat the BOM, since we've already found the encoding on this file,
+                        // and we plan to concatenating this buffer with others; the BOM should
+                        // only appear at the top of a file.
+                        line = line.substring(1);
+                    }
+
+                    stringBuffer.append(line);
+
+                    while ((line = input.readLine()) !== null) {
+                        stringBuffer.append(lineSeparator);
+                        stringBuffer.append(line);
+                    }
+                    //Make sure we return a JavaScript string and not a Java string.
+                    content = String(stringBuffer.toString()); //String
+                } finally {
+                    input.close();
+                }
+                callback(content);
+            };
+        }
+
+        return text;
+    });
+}());
+
+define('text!Calendar.tpl',[],function () { return '<cj:Calendar xmlns:cj="http://caljs.org/1.0">\n\n</cj:Calendar>';});
+
+define('text!WeekView.tpl',[],function () { return '<cj:WeekView xmlns:cj="http://caljs.org/1.0">\n\n</cj:WeekView>';});
+
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 5/29/12
+ * Time: 1:06 PM
+ */
+
+define('WeekView',['Component', 'text!WeekView.tpl'], function (Component, WeekViewTpl) {
+
+    var WeekView = function (options) {
+        // Setting WeekView template as a root element
+        options.el = WeekViewTpl;
+        // Calling parent constructor
+        Component.call(this, options);
+    };
+    WeekView.prototype = Object.create(Component.prototype);
+
+    WeekView.prototype.render = function () {
+        return this;
+    };
+
+    return WeekView;
+});
 /**
  * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
  *
@@ -337,41 +699,59 @@ define('text!Calendar.tpl',[],function () { return '<caljs:Calendar xmlns:caljs=
  * Time: 12:53 PM
  */
 
-define('Calendar',['text!Calendar.tpl'], function (CalendarTemplate) {
+define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl'],
+    function (Component, WeekView, MonthView, CalendarTpl) {
 
-    var Calendar = function (options) {
-        if (options) {
+        var Calendar = function (options) {
+            // Calling base Component type constructor
+            Component.call(this, options);
 
-            this.setElement(options.el);
-            this.setModel(options.model);
-        }
-    };
+            /**
+             * Instance of WeekView
+             * @type {WeekView}
+             */
+            this.weekView = new WeekView({model:this.model, date:this.date});
 
-    Calendar.prototype.setElement = function (el) {
-        if (el) {
-            this.$el = $(el); // el can be either CSS selector or DOM element
-            this.el = this.$el[0];
-        }
-        return this;
-    };
+            /**
+             * Instance of MonthView
+             * @type {MonthView}
+             */
+            this.monthView = null;
 
-    Calendar.prototype.setModel = function (model) {
-        if (model) this.model = model;
-        return this;
-    };
+            /**
+             * Current visible view
+             * @type {MonthView || WeekView}
+             */
+            this.currentView = this.weekView;
 
-    Calendar.prototype.render = function () {
+            /**
+             * Instance of NavigationBar
+             * @type {NavigationBar}
+             */
+            this.navigationBar = null;
 
-        // Creating new div container if necessary
-        if (!this.$el) this.setElement('<div/>');
+            /**
+             * Current calendar date
+             * @type {Date}
+             */
+            this.date = options && options.date ? options.date : new Date;
+        };
 
-        this.$el.html(CalendarTemplate);
+        Calendar.prototype = Object.create(Component.prototype);
 
-        return this;
-    };
+        Calendar.prototype.render = function () {
 
-    return Calendar;
-});
+            // Applying default calendar template
+            this.$el.html(CalendarTpl);
+
+            this.$el.append(this.currentView.el);
+            this.currentView.render();
+
+            return this;
+        };
+
+        return Calendar;
+    });
 /**
  * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
  *
@@ -381,9 +761,7 @@ define('Calendar',['text!Calendar.tpl'], function (CalendarTemplate) {
  */
 
 define('CalJS',['Calendar'], function (Calendar) {
-
     CalJS.Calendar = Calendar;
-
     return CalJS;
 });
     return CalJS;

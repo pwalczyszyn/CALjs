@@ -7,8 +7,6 @@
  */
 
 define(['Calendar'], function (Calendar) {
-
     CalJS.Calendar = Calendar;
-
     return CalJS;
 });

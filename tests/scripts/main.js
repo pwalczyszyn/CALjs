@@ -6,5 +6,7 @@
  * Time: 12:22 PM
  */
 
-var cal = new CalJS.Calendar({el:'#container'});
-cal.render();
+function onBodyLoad() {
+    var cal = new CalJS.Calendar({el:'#container'});
+    cal.render();
+}
