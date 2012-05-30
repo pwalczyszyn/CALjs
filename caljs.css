@@ -1,0 +1,18 @@
+@namespace cj "http://caljs.org/1.0";
+
+cj\:Calendar {
+    position: relative;
+    display: inline-block;
+    background-color: #dcdcdc;
+    min-width: 300px;
+    min-height: 250px;
+}
+
+cj\:WeekView {
+    position: absolute;
+    display: block;
+    background-color: #808080;
+    width: 100%;
+    top: 60px;
+    bottom: 0;
+}

@@ -6,7 +6,7 @@
  * Time: 1:06 PM
  */
 
-define(['Component', 'text!WeekView.tpl'], function (Component, WeekViewTpl) {
+define(['Component', 'text!WeekView.tpl!strip'], function (Component, WeekViewTpl) {
 
     var WeekView = function (options) {
         // Setting WeekView template as a root element

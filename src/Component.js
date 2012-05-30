@@ -9,6 +9,7 @@
 define([], function () {
 
     var Component = function (options) {
+
         this.isTouch = 'ontouchstart' in window;
         this.MOUSE_DOWN_EV = this.isTouch ? 'touchstart' : 'mousedown';
         this.MOUSE_MOVE_EV = this.isTouch ? 'touchmove' : 'mousemove';
