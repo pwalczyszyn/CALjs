@@ -1,18 +1,57 @@
 @namespace cj "http://caljs.org/1.0";
 
 cj\:Calendar {
-    position: relative;
     display: inline-block;
+    position: relative;
     background-color: #dcdcdc;
     min-width: 300px;
     min-height: 250px;
 }
 
-cj\:WeekView {
-    position: absolute;
+cj\:NavigationBar {
     display: block;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+cj\:NavigationBarLeft {
+    float: left;
+    width: 50%;
+    line-height: 60px;
+    vertical-align: middle;
+}
+
+cj\:NavigationBarRight {
+    float: right;
+    width: 50%;
+    line-height: 60px;
+    vertical-align: middle;
+}
+
+cj\:WeekView {
+    display: block;
+    position: absolute;
     background-color: #808080;
     width: 100%;
     top: 60px;
     bottom: 0;
+}
+
+/*******************************************************
+ * Touch Buttons
+ *******************************************************/
+cj\:Button {
+    display: inline-block;
+    height: 30px;
+    width: 30px;
+    vertical-align: middle;
+}
+
+cj\:Button.btn-prev, cj\:Button.btn-prev.up {
+    background-image: url("images/caljs/btn-prev.png");
+}
+
+cj\:Button.btn-prev, cj\:Button.btn-prev.down {
+    background-image: url("images/caljs/btn-prev-on.png");
 }

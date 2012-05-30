@@ -664,7 +664,7 @@ define('MonthView',['Component'], function (Component) {
     });
 }());
 
-define('text!Calendar.tpl!strip',[],function () { return '<cj:Calendar xmlns:cj="http://caljs.org/1.0">\n\n</cj:Calendar>';});
+define('text!Calendar.tpl!strip',[],function () { return '<cj:Calendar xmlns:cj="http://caljs.org/1.0">\n    <cj:NavigationBar>\n\n        <cj:NavigationBarLeft>\n            <cj:Button class="btn-prev"/>\n        </cj:NavigationBarLeft>\n\n        <cj:NavigationBarRight>\n\n        </cj:NavigationBarRight>\n    </cj:NavigationBar>\n</cj:Calendar>';});
 
 define('text!WeekView.tpl!strip',[],function () { return '<cj:WeekView>\n\n</cj:WeekView>\n\n';});
 
@@ -716,7 +716,8 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
              * @type {WeekView}
              */
             this.weekView = new WeekView({model:this.model, date:this.date});
-            this.weekView.$el.on(this.MOUSE_DOWN_EV, {context:this}, this.container_mouseDownHandler);
+            // Adding mouse or touch down event handler
+            this.weekView.$el.on(this.MOUSE_DOWN_EV, {context:this}, container_mouseDownHandler);
 
             /**
              * Instance of MonthView
@@ -731,34 +732,44 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
             this.currentView = this.weekView;
 
             /**
-             * Instance of NavigationBar
-             * @type {NavigationBar}
-             */
-            this.navigationBar = null;
-
-            /**
              * Current calendar date
              * @type {Date}
              */
             this.date = options && options.date ? options.date : new Date;
 
-        };
-        Calendar.prototype = Object.create(Component.prototype);
+            (function initTouchButtons(that) {
 
-        Calendar.prototype.render = function () {
+                that.$el.on('click jc\\:Button', function (event) {
+                    alert('Button clicked');
+                });
 
-            this.$calendar = $(CalendarTpl);
-            this.$calendar.append(this.currentView.el);
-            this.currentView.render();
+            })(this);
 
-            // Applying default calendar template
-            this.$el.html(this.$calendar);
+            /**
+             * Overriding render function from Component type.
+             *
+             * @return {Calendar}
+             */
+            this.render = function render() {
 
-            return this;
-        };
+                this.$calendar = $(CalendarTpl);
+                this.$calendar.append(this.currentView.el);
+                this.currentView.render();
 
-        Calendar.prototype.container_mouseDownHandler = function (event) {
-            alert('mouse down handle');
+                // Applying default calendar template
+                this.$el.html(this.$calendar);
+
+                return this;
+            };
+
+            /**
+             * Mouse or touch down handler.
+             *
+             * @private
+             * @param event
+             */
+            function container_mouseDownHandler(event) {
+                alert('mouse down handle');
 
 //            var that = event.data.context;
 //
@@ -781,7 +792,11 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
 //                moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, that.container_mouseMoveHandler);
 //                moveTarget.on(that.MOUSE_UP_EV, {context:that}, that.container_mouseUpHandler);
 //            }
+            }
+
+
         };
+        Calendar.prototype = Object.create(Component.prototype);
 
         return Calendar;
     });
