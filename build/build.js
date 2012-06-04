@@ -1,10 +1,10 @@
 ({
     baseUrl:"../src",
     paths:{
-        "almond":"../build/almond-0.0.3",
-        "text":"../build/text-1.0.8"
+        "almond":"../build/almond",
+        "text":"../build/text"
     },
-    include:["almond", "CalJS"],
+    include:["almond", "Calendar"],
     preserveLicenseComments:true,
     out:"caljs-built.js",
     wrap:{

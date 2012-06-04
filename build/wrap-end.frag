@@ -1,3 +1,5 @@
 
-    return CalJS;
+    return {
+        Calendar : require('Calendar')
+    };
 }));
