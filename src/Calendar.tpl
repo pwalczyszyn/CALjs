@@ -2,7 +2,7 @@
     <cj:NavigationBar>
 
         <cj:NavigationBarLeft>
-            <cj:Button class="btn-prev"/>
+            <cj:Button class="btn-prev up"/>
         </cj:NavigationBarLeft>
 
         <cj:NavigationBarRight>

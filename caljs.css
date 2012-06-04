@@ -52,6 +52,6 @@ cj\:Button.btn-prev, cj\:Button.btn-prev.up {
     background-image: url("images/caljs/btn-prev.png");
 }
 
-cj\:Button.btn-prev, cj\:Button.btn-prev.down {
+cj\:Button.btn-prev.down, cj\:Button.btn-prev.active {
     background-image: url("images/caljs/btn-prev-on.png");
 }

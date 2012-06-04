@@ -6,7 +6,7 @@
  * Time: 12:53 PM
  */
 
-define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip'],
+define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/TouchButtons'],
     function (Component, WeekView, MonthView, CalendarTpl) {
 
         var Calendar = function (options) {
@@ -43,14 +43,6 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip'],
              */
             this.date = options && options.date ? options.date : new Date;
 
-            (function initTouchButtons(that) {
-
-                that.$el.on('click jc\\:Button', function (event) {
-                    alert('Button clicked');
-                });
-
-            })(this);
-
             /**
              * Overriding render function from Component type.
              *
@@ -59,6 +51,8 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip'],
             this.render = function render() {
 
                 this.$calendar = $(CalendarTpl);
+                this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', prevBtn_clickHandler);
+
                 this.$calendar.append(this.currentView.el);
                 this.currentView.render();
 
@@ -67,6 +61,10 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip'],
 
                 return this;
             };
+
+            function prevBtn_clickHandler(event) {
+                console.log('prevBtn clicked!');
+            }
 
             /**
              * Mouse or touch down handler.
