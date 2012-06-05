@@ -3,6 +3,7 @@
 
         <cj:NavigationBarLeft>
             <cj:Button class="btn-prev up"/>
+            <cj:RangeLabel/>
         </cj:NavigationBarLeft>
 
         <cj:NavigationBarRight>

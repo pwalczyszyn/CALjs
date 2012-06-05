@@ -13,6 +13,9 @@ define(['Component', 'text!WeekView.tpl!strip'], function (Component, WeekViewTp
         options.el = WeekViewTpl;
         // Calling parent constructor
         Component.call(this, options);
+
+        // Setting current WeekView date
+        this.date = options.date;
     };
     WeekView.prototype = Object.create(Component.prototype);
 

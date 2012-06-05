@@ -8,37 +8,94 @@
 
 define([], function () {
 
-    var Component = function (options) {
+        var Component = function (options) {
 
-        this.isTouch = 'ontouchstart' in window;
-        this.MOUSE_DOWN_EV = this.isTouch ? 'touchstart' : 'mousedown';
-        this.MOUSE_MOVE_EV = this.isTouch ? 'touchmove' : 'mousemove';
-        this.MOUSE_UP_EV = this.isTouch ? 'touchend' : 'mouseup';
+            this.isTouch = 'ontouchstart' in window;
+            this.MOUSE_DOWN_EV = this.isTouch ? 'touchstart' : 'mousedown';
+            this.MOUSE_MOVE_EV = this.isTouch ? 'touchmove' : 'mousemove';
+            this.MOUSE_UP_EV = this.isTouch ? 'touchend' : 'mouseup';
 
-        this.options = options;
-        if (this.options) {
-            if (this.options.el) this.setElement(this.options.el);
-            if (this.options.model) this.setModel(this.options.model);
-        }
-    };
+            this.bindHandler = function bindHandler(handler, thisObject) {
+                return function () {
+                    handler.apply(thisObject, Array.prototype.slice.call(arguments));
+                }
+            }
 
-    Component.prototype.setElement = function (el) {
-        if (!el) el = '<div/>';
-        this.$el = $(el); // el can be either CSS selector or DOM element
-        this.el = this.$el[0];
-    };
+            var handlersMap = {};
+            this.on = function on(eventNames, handlerFunction, thisObject) {
+                var events = eventNames.split(' ');
+                events.forEach(function (eventName) {
+                    var handlers = handlersMap[eventName],
+                        isOn = false;
+                    if (!handlers) {
+                        handlers = handlersMap[eventName] = [];
+                    } else {
+                        isOn = handlers.some(function (ref) {
+                            return ref.handlerFunction === handlerFunction;
+                        });
+                    }
+                    if (!isOn) handlers.push({'handlerFunction':handlerFunction, 'thisObject':thisObject});
+                }, this);
+            }
 
-    Component.prototype.$ = function (selector) {
-        return this.$el.find(selector);
-    };
+            this.off = function off(eventNames, handlerFunction) {
+                if (typeof eventNames === 'undefined') {
+                    for (var eventName in handlersMap) {
+                        delete handlersMap[eventName];
+                    }
+                } else {
+                    var events = eventNames.split(' ');
+                    events.forEach(function (eventName) {
+                        if (typeof handlerFunction === 'undefined') {
+                            delete handlersMap[eventName];
+                        } else {
+                            handlersMap[eventName].forEach(function (ref, index, arr) {
+                                if (ref.handlerFunction === handlerFunction) arr.splice(index, 1);
+                            }, this);
+                        }
+                    }, this);
+                }
+            }
 
-    Component.prototype.setModel = function (model) {
-        this.model = model;
-    };
+            this.trigger = function trigger(eventName, args) {
+                if (typeof eventName !== 'undefined') {
+                    var handlers = handlersMap[eventName];
+                    if (handlers) {
+                        handlers.forEach(function (ref) {
+                            var thisObject = typeof ref.thisObject !== 'undefined' ? ref.thisObject : this;
+                            if (!Array.isArray(args)) args = [args];
+                            ref.handlerFunction.apply(thisObject, args);
+                        }, this);
+                    }
+                }
+            }
 
-    Component.prototype.render = function () {
-        return this;
-    };
+            this.options = options;
+            if (this.options) {
+                if (this.options.el) this.setElement(this.options.el);
+                if (this.options.model) this.setModel(this.options.model);
+            }
+        };
 
-    return Component;
-});
+        Component.prototype.setElement = function (el) {
+            if (!el) el = '<div/>';
+            this.$el = $(el); // el can be either CSS selector or DOM element
+            this.el = this.$el[0];
+        };
+
+        Component.prototype.$ = function (selector) {
+            return this.$el.find(selector);
+        };
+
+        Component.prototype.setModel = function (model) {
+            this.model = model;
+        };
+
+        Component.prototype.render = function () {
+            return this;
+        };
+
+        return Component;
+    }
+)
+;

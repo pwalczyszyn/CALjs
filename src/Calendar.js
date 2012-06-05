@@ -6,11 +6,10 @@
  * Time: 12:53 PM
  */
 
-define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/TouchButtons'],
-    function (Component, WeekView, MonthView, CalendarTpl) {
+define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/DateHelper', 'utils/TouchButtons'],
+    function (Component, WeekView, MonthView, CalendarTpl, DateHelper) {
 
         var Calendar = function (options) {
-
             // If el is not specified by the user using div as parent element
             if (!options) options = {el:'<div/>'};
 
@@ -21,9 +20,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
              * Instance of WeekView
              * @type {WeekView}
              */
-            this.weekView = new WeekView({model:this.model, date:this.date});
-            // Adding mouse or touch down event handler
-            this.weekView.$el.on(this.MOUSE_DOWN_EV, {context:this}, container_mouseDownHandler);
+            this.weekView = null;
 
             /**
              * Instance of MonthView
@@ -35,7 +32,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
              * Current visible view
              * @type {MonthView || WeekView}
              */
-            this.currentView = this.weekView;
+            this.currentView = null;
 
             /**
              * Current calendar date
@@ -49,21 +46,107 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
              * @return {Calendar}
              */
             this.render = function render() {
-
+                // Creating $calendar DOM
                 this.$calendar = $(CalendarTpl);
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', prevBtn_clickHandler);
+                // Registering $calendar event handlers
+                this.$calendar.on('tbclick  cj\\:Button.btn-prev', prevBtn_clickHandler);
 
+                // Creating WeekView as initial current view
+                this.weekView = this.currentView = new WeekView({model:this.model, date:this.date});
+                // Adding range changed handler
+                this.weekView.on(Calendar.RANGE_CHANGED, currentView_rangeChangedHandler, this);
+                // Adding context menu handler
+                this.weekView.on(Calendar.CONTEXT_MENU, currentView_contextMenuHandler, this);
+                // Adding mouse or touch down event handler
+                this.weekView.$el.on(this.MOUSE_DOWN_EV, this.bindHandler(container_mouseDownHandler, this));
+
+                // Appending current view to the DOM
                 this.$calendar.append(this.currentView.el);
+                // Rendering current view
                 this.currentView.render();
 
-                // Applying default calendar template
+                // Updating calendar period label
+                updateCurrentPeriodLabel.call(this);
+
+                // Adding whole calendar to the DOM
                 this.$el.html(this.$calendar);
 
                 return this;
             };
 
+            /**
+             * Updates RangeLabel content based on currentView.date value.
+             *
+             * @private
+             */
+            function updateCurrentPeriodLabel() {
+                var label;
+                if (this.currentView instanceof WeekView) {
+                    var weekStart = DateHelper.firstDayOfWeek(this.currentView.date);
+                    var weekEnd = DateHelper.lastDayOfWeek(this.currentView.date);
+
+                    if (weekStart.getMonth() == weekEnd.getMonth())
+                        label = DateHelper.format(weekStart, 'mmmm yyyy');
+                    else
+                        label = DateHelper.format(weekStart, 'mmmm') + ' - '
+                            + DateHelper.format(weekEnd, 'mmmm yyyy');
+
+                } else {
+                    label = DateHelper.format(this.currentView.date, 'mmmm yyyy');
+                }
+
+                this.$calendar.find('cj\\:RangeLabel').html(label);
+            }
+
+            /**
+             * Displayes popup message when dates range is changed.
+             *
+             * @private
+             */
+            function showRangeChangeMessage() {
+
+                // Setting displayed message text
+                var messageText = DateHelper.format(this.currentView.rangeStartDate, "mmm d") + ' - '
+                    + DateHelper.format(this.currentView.rangeEndDate, "mmm d");
+
+                // Creating message div
+                var message = $('<div/>')
+                    .html(messageText)
+                    .addClass('range-change-message')
+                    .appendTo(this.$el);
+
+                // Positioning message
+                var messagePosition = {
+                    top:this.$el.height() / 2 - (message.height() / 2),
+                    left:this.$el.width() / 2 - (message.width() / 2)
+                };
+
+                // Displaying message with fadeIn/fadeOut effects
+                message
+                    .css(messagePosition)
+                    .fadeIn(300, function () {
+                        $(this)
+                            .delay(500)
+                            .fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                    });
+            }
+
+            function toggleNonWorking() {
+                this.currentView.toggleNonWorking();
+            }
+
             function prevBtn_clickHandler(event) {
                 console.log('prevBtn clicked!');
+            }
+
+            function currentView_rangeChangedHandler() {
+
+            }
+
+            function currentView_contextMenuHandler(entry) {
+                this.trigger('contextMenu', entry);
             }
 
             /**
@@ -100,6 +183,8 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
 
         };
+        Calendar.RANGE_CHANGED = 'rangeChanged';
+        Calendar.CONTEXT_MENU = 'contextMenu';
         Calendar.prototype = Object.create(Component.prototype);
 
         return Calendar;

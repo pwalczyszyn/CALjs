@@ -375,40 +375,97 @@ define("almond", function(){});
 
 define('Component',[], function () {
 
-    var Component = function (options) {
+        var Component = function (options) {
 
-        this.isTouch = 'ontouchstart' in window;
-        this.MOUSE_DOWN_EV = this.isTouch ? 'touchstart' : 'mousedown';
-        this.MOUSE_MOVE_EV = this.isTouch ? 'touchmove' : 'mousemove';
-        this.MOUSE_UP_EV = this.isTouch ? 'touchend' : 'mouseup';
+            this.isTouch = 'ontouchstart' in window;
+            this.MOUSE_DOWN_EV = this.isTouch ? 'touchstart' : 'mousedown';
+            this.MOUSE_MOVE_EV = this.isTouch ? 'touchmove' : 'mousemove';
+            this.MOUSE_UP_EV = this.isTouch ? 'touchend' : 'mouseup';
 
-        this.options = options;
-        if (this.options) {
-            if (this.options.el) this.setElement(this.options.el);
-            if (this.options.model) this.setModel(this.options.model);
-        }
-    };
+            this.bindHandler = function bindHandler(handler, thisObject) {
+                return function () {
+                    handler.apply(thisObject, Array.prototype.slice.call(arguments));
+                }
+            }
 
-    Component.prototype.setElement = function (el) {
-        if (!el) el = '<div/>';
-        this.$el = $(el); // el can be either CSS selector or DOM element
-        this.el = this.$el[0];
-    };
+            var handlersMap = {};
+            this.on = function on(eventNames, handlerFunction, thisObject) {
+                var events = eventNames.split(' ');
+                events.forEach(function (eventName) {
+                    var handlers = handlersMap[eventName],
+                        isOn = false;
+                    if (!handlers) {
+                        handlers = handlersMap[eventName] = [];
+                    } else {
+                        isOn = handlers.some(function (ref) {
+                            return ref.handlerFunction === handlerFunction;
+                        });
+                    }
+                    if (!isOn) handlers.push({'handlerFunction':handlerFunction, 'thisObject':thisObject});
+                }, this);
+            }
 
-    Component.prototype.$ = function (selector) {
-        return this.$el.find(selector);
-    };
+            this.off = function off(eventNames, handlerFunction) {
+                if (typeof eventNames === 'undefined') {
+                    for (var eventName in handlersMap) {
+                        delete handlersMap[eventName];
+                    }
+                } else {
+                    var events = eventNames.split(' ');
+                    events.forEach(function (eventName) {
+                        if (typeof handlerFunction === 'undefined') {
+                            delete handlersMap[eventName];
+                        } else {
+                            handlersMap[eventName].forEach(function (ref, index, arr) {
+                                if (ref.handlerFunction === handlerFunction) arr.splice(index, 1);
+                            }, this);
+                        }
+                    }, this);
+                }
+            }
 
-    Component.prototype.setModel = function (model) {
-        this.model = model;
-    };
+            this.trigger = function trigger(eventName, args) {
+                if (typeof eventName !== 'undefined') {
+                    var handlers = handlersMap[eventName];
+                    if (handlers) {
+                        handlers.forEach(function (ref) {
+                            var thisObject = typeof ref.thisObject !== 'undefined' ? ref.thisObject : this;
+                            if (!Array.isArray(args)) args = [args];
+                            ref.handlerFunction.apply(thisObject, args);
+                        }, this);
+                    }
+                }
+            }
 
-    Component.prototype.render = function () {
-        return this;
-    };
+            this.options = options;
+            if (this.options) {
+                if (this.options.el) this.setElement(this.options.el);
+                if (this.options.model) this.setModel(this.options.model);
+            }
+        };
 
-    return Component;
-});
+        Component.prototype.setElement = function (el) {
+            if (!el) el = '<div/>';
+            this.$el = $(el); // el can be either CSS selector or DOM element
+            this.el = this.$el[0];
+        };
+
+        Component.prototype.$ = function (selector) {
+            return this.$el.find(selector);
+        };
+
+        Component.prototype.setModel = function (model) {
+            this.model = model;
+        };
+
+        Component.prototype.render = function () {
+            return this;
+        };
+
+        return Component;
+    }
+)
+;
 /**
  * @license RequireJS text 2.0.0 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -730,6 +787,9 @@ define('WeekView',['Component', 'text!WeekView.tpl!strip'], function (Component,
         options.el = WeekViewTpl;
         // Calling parent constructor
         Component.call(this, options);
+
+        // Setting current WeekView date
+        this.date = options.date;
     };
     WeekView.prototype = Object.create(Component.prototype);
 
@@ -761,8 +821,260 @@ define('MonthView',['Component'], function (Component) {
 
     return MonthView;
 });
-define('text!Calendar.tpl!strip',[],function () { return '<cj:Calendar xmlns:cj="http://caljs.org/1.0">\n    <cj:NavigationBar>\n\n        <cj:NavigationBarLeft>\n            <cj:Button class="btn-prev"/>\n        </cj:NavigationBarLeft>\n\n        <cj:NavigationBarRight>\n\n        </cj:NavigationBarRight>\n    </cj:NavigationBar>\n</cj:Calendar>';});
+define('text!Calendar.tpl!strip',[],function () { return '<cj:Calendar xmlns:cj="http://caljs.org/1.0">\n    <cj:NavigationBar>\n\n        <cj:NavigationBarLeft>\n            <cj:Button class="btn-prev up"/>\n            <cj:RangeLabel/>\n        </cj:NavigationBarLeft>\n\n        <cj:NavigationBarRight>\n\n        </cj:NavigationBarRight>\n    </cj:NavigationBar>\n</cj:Calendar>';});
 
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 2/22/12
+ * Time: 3:50 PM
+ */
+
+define('utils/DateHelper',[],function () {
+
+    var DateHelper = function () {
+    }
+
+    DateHelper.toISO8601 = function (date) {
+        var year = date.getUTCFullYear();
+        var month = date.getUTCMonth() + 1;
+        var day = date.getUTCDate();
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var seconds = date.getSeconds();
+
+        month = ( month < 10 ) ? '0' + month : month;
+        day = ( day < 10 ) ? '0' + day : day;
+        hours = ( hours < 10 ) ? '0' + hours : hours;
+        minutes = ( minutes < 10 ) ? '0' + minutes : minutes;
+        seconds = ( seconds < 10 ) ? '0' + seconds : seconds;
+
+        var tzOffsetSign = "-";
+        var tzOffset = date.getTimezoneOffset();
+        if (tzOffset < 0) {
+            tzOffsetSign = "+";
+            tzOffset = -tzOffset;
+        }
+        var tzOffsetMinutes = tzOffset % 60;
+        var tzOffsetHours = (tzOffset - tzOffsetMinutes) / 60;
+        var tzOffsetMinutesStr = tzOffsetMinutes < 10 ? "0" + tzOffsetMinutes : "" + tzOffsetMinutes;
+        var tzOffsetHoursStr = tzOffsetHours < 10 ? "0" + tzOffsetHours : "" + tzOffsetHours;
+        return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes + ':' + seconds + ".000" + tzOffsetSign + "" + tzOffsetHoursStr + "" + tzOffsetMinutesStr;
+
+    }
+
+    DateHelper.parseISO8601 = function (string) {
+        if ((string == null) || (string == "")) return null;
+        var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
+            "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +
+            "(Z|(([-+])([0-9]{2})([0-9]{2})))?)?)?)?";
+        var d = string.match(new RegExp(regexp));
+        var offset = 0;
+        var date = new Date(d[1], 0, 1);
+
+        if (d[3]) {
+            date.setMonth(d[3] - 1);
+        }
+        if (d[5]) {
+            date.setDate(d[5]);
+        }
+        if (d[7]) {
+            date.setHours(d[7]);
+        }
+        if (d[8]) {
+            date.setMinutes(d[8]);
+        }
+        if (d[10]) {
+            date.setSeconds(d[10]);
+        }
+        if (d[12]) {
+            date.setMilliseconds(Number("0." + d[12]) * 1000);
+        }
+        if (d[14]) {
+            offset = (Number(d[16]) * 60) + Number(d[17]);
+            offset = ((d[15] == '-') ? offset : -offset);
+        }
+        offset = offset - (date.getTimezoneOffset());
+        date.setTime(date.getTime() + offset * 60 * 1000);
+        return date;
+    }
+
+
+    var addDays = DateHelper.addDays = function (date, days) {
+        var result = new Date(date);
+        result.setDate(date.getDate() + days);
+        return result;
+    };
+
+    var firstDayOfWeek = DateHelper.firstDayOfWeek = function (date) {
+        var day = date.getDay();
+        day = (day == 0) ? -6 : day - 1;
+        return addDays(date, -day);
+    };
+
+    var hoursInMs = DateHelper.hoursInMs = function (date) {
+        return date.getHours() * 60 * 60 * 1000
+            + date.getMinutes() * 60 * 1000
+            + date.getSeconds() * 1000
+            + date.getMilliseconds();
+    };
+
+    var sameDates = DateHelper.sameDates = function (date1, date2) {
+        return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth()
+            && date1.getDate() == date2.getDate();
+    };
+
+    var lastDayOfWeek = DateHelper.lastDayOfWeek = function (date) {
+        var day = date.getDay();
+        (day == 0) || (day = 7 - day);
+        return addDays(date, day);
+    };
+
+    var nextWeekFirstDay = DateHelper.nextWeekFirstDay = function (date) {
+        return addDays(firstDayOfWeek(date), 7);
+    };
+
+    var prevWeekFirstDay = DateHelper.prevWeekFirstDay = function (date) {
+        return addDays(firstDayOfWeek(date), -7);
+    };
+
+    var nextMonthFirstDay = DateHelper.nextMonthFirstDay = function (date) {
+        var result = new Date(date);
+        result.setMonth(date.getMonth() + 1, 1);
+        return result;
+    };
+
+    var prevMonthFirstDay = DateHelper.prevMonthFirstDay = function (date) {
+        var result = new Date(date);
+        result.setMonth(date.getMonth() - 1, 1);
+        return result;
+    };
+
+
+    /*
+     * Date Format 1.2.3
+     * (c) 2007-2009 Steven Levithan <stevenlevithan.com>
+     * MIT license
+     *
+     * Includes enhancements by Scott Trenda <scott.trenda.net>
+     * and Kris Kowal <cixar.com/~kris.kowal/>
+     *
+     * Accepts a date, a mask, or a date and a mask.
+     * Returns a formatted version of the given date.
+     * The date defaults to the current date/time.
+     * The mask defaults to dateFormat.masks.default.
+     */
+    var format = DateHelper.format = function () {
+        var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+            timezoneClip = /[^-+\dA-Z]/g,
+            pad = function (val, len) {
+                val = String(val);
+                len = len || 2;
+                while (val.length < len) val = "0" + val;
+                return val;
+            };
+
+        // Regexes and supporting functions are cached through closure
+        return function (date, mask, utc) {
+            var dF = format;
+
+            // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+            if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
+                mask = date;
+                date = undefined;
+            }
+
+            // Passing date through Date applies Date.parse, if necessary
+            date = date ? new Date(date) : new Date;
+            if (isNaN(date)) throw SyntaxError("invalid date");
+
+            mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+            // Allow setting the utc argument via the mask
+            if (mask.slice(0, 4) == "UTC:") {
+                mask = mask.slice(4);
+                utc = true;
+            }
+
+            var _ = utc ? "getUTC" : "get",
+                d = date[_ + "Date"](),
+                D = date[_ + "Day"](),
+                m = date[_ + "Month"](),
+                y = date[_ + "FullYear"](),
+                H = date[_ + "Hours"](),
+                M = date[_ + "Minutes"](),
+                s = date[_ + "Seconds"](),
+                L = date[_ + "Milliseconds"](),
+                o = utc ? 0 : date.getTimezoneOffset(),
+                flags = {
+                    d:d,
+                    dd:pad(d),
+                    ddd:dF.i18n.dayNames[D],
+                    dddd:dF.i18n.dayNames[D + 7],
+                    m:m + 1,
+                    mm:pad(m + 1),
+                    mmm:dF.i18n.monthNames[m],
+                    mmmm:dF.i18n.monthNames[m + 12],
+                    yy:String(y).slice(2),
+                    yyyy:y,
+                    h:H % 12 || 12,
+                    hh:pad(H % 12 || 12),
+                    H:H,
+                    HH:pad(H),
+                    M:M,
+                    MM:pad(M),
+                    s:s,
+                    ss:pad(s),
+                    l:pad(L, 3),
+                    L:pad(L > 99 ? Math.round(L / 10) : L),
+                    t:H < 12 ? "a" : "p",
+                    tt:H < 12 ? "am" : "pm",
+                    T:H < 12 ? "A" : "P",
+                    TT:H < 12 ? "AM" : "PM",
+                    Z:utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                    o:(o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                    S:["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+                };
+
+            return mask.replace(token, function ($0) {
+                return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+            });
+        };
+    }();
+
+    // Some common format strings
+    format.masks = {
+        "default":"ddd mmm dd yyyy HH:MM:ss",
+        shortDate:"m/d/yy",
+        mediumDate:"mmm d, yyyy",
+        longDate:"mmmm d, yyyy",
+        fullDate:"dddd, mmmm d, yyyy",
+        shortTime:"h:MM TT",
+        mediumTime:"h:MM:ss TT",
+        longTime:"h:MM:ss TT Z",
+        isoDate:"yyyy-mm-dd",
+        isoTime:"HH:MM:ss",
+        isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",
+        isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+    };
+
+    // Internationalization strings
+    format.i18n = {
+        dayNames:[
+            "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+            "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+        ],
+        monthNames:[
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+            "November", "December"
+        ]
+    };
+
+    return DateHelper;
+});
 /**
  * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
  *
@@ -771,13 +1083,13 @@ define('text!Calendar.tpl!strip',[],function () { return '<cj:Calendar xmlns:cj=
  * Time: 4:54 PM
  */
 
-define('utils/Buttons',[], function () {
+define('utils/TouchButtons',[],function () {
 
     var isTouch = 'ontouchstart' in window,
         MOUSE_DOWN = isTouch ? 'touchstart' : 'mousedown',
         MOUSE_UP = isTouch ? 'touchend' : 'mouseup';
 
-    $(document).on(MOUSE_DOWN, "jc\\:Button",
+    $(document).on(MOUSE_DOWN, "cj\\:Button",
         function (event) {
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -787,7 +1099,7 @@ define('utils/Buttons',[], function () {
             // Detecting if this is left mouse button
             if ((isTouch && event.originalEvent.touches.length == 1) || (!isTouch && event.which == 1)) {
 
-                $el.addClass('active');
+                $el.removeClass('up down').addClass('active');
 
                 $(document).on(MOUSE_UP, function (event) {
                     event.preventDefault();
@@ -826,8 +1138,8 @@ define('utils/Buttons',[], function () {
                                 }
                             });
 
-                            // Click if the button was up
-                            if (wasUp) $el.trigger('click');
+                            // tbclick if the button was up
+                            if (wasUp) $el.trigger('tbclick');
 
                         } else {
 
@@ -837,12 +1149,12 @@ define('utils/Buttons',[], function () {
                             else
                                 $el.removeClass('up').addClass('down');
 
-                            // Toggle button always triggers click no matter what
-                            $el.trigger('click');
+                            // Toggle button always triggers tbclick no matter what
+                            $el.trigger('tbclick');
                         }
                     } else {
-                        // Triggering default click event
-                        $el.trigger('click');
+                        // Triggering default tbclick event
+                        $el.trigger('tbclick');
                     }
                 });
             }
@@ -856,11 +1168,10 @@ define('utils/Buttons',[], function () {
  * Time: 12:53 PM
  */
 
-define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/Buttons'],
-    function (Component, WeekView, MonthView, CalendarTpl) {
+define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/DateHelper', 'utils/TouchButtons'],
+    function (Component, WeekView, MonthView, CalendarTpl, DateHelper) {
 
         var Calendar = function (options) {
-
             // If el is not specified by the user using div as parent element
             if (!options) options = {el:'<div/>'};
 
@@ -871,9 +1182,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
              * Instance of WeekView
              * @type {WeekView}
              */
-            this.weekView = new WeekView({model:this.model, date:this.date});
-            // Adding mouse or touch down event handler
-            this.weekView.$el.on(this.MOUSE_DOWN_EV, {context:this}, container_mouseDownHandler);
+            this.weekView = null;
 
             /**
              * Instance of MonthView
@@ -885,7 +1194,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
              * Current visible view
              * @type {MonthView || WeekView}
              */
-            this.currentView = this.weekView;
+            this.currentView = null;
 
             /**
              * Current calendar date
@@ -899,16 +1208,108 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
              * @return {Calendar}
              */
             this.render = function render() {
-
+                // Creating $calendar DOM
                 this.$calendar = $(CalendarTpl);
+                // Registering $calendar event handlers
+                this.$calendar.on('tbclick  cj\\:Button.btn-prev', prevBtn_clickHandler);
+
+                // Creating WeekView as initial current view
+                this.weekView = this.currentView = new WeekView({model:this.model, date:this.date});
+                // Adding range changed handler
+                this.weekView.on(Calendar.RANGE_CHANGED, currentView_rangeChangedHandler, this);
+                // Adding context menu handler
+                this.weekView.on(Calendar.CONTEXT_MENU, currentView_contextMenuHandler, this);
+                // Adding mouse or touch down event handler
+                this.weekView.$el.on(this.MOUSE_DOWN_EV, this.bindHandler(container_mouseDownHandler, this));
+
+                // Appending current view to the DOM
                 this.$calendar.append(this.currentView.el);
+                // Rendering current view
                 this.currentView.render();
 
-                // Applying default calendar template
+                // Updating calendar period label
+                updateCurrentPeriodLabel.call(this);
+
+                // Adding whole calendar to the DOM
                 this.$el.html(this.$calendar);
 
                 return this;
             };
+
+            /**
+             * Updates RangeLabel content based on currentView.date value.
+             *
+             * @private
+             */
+            function updateCurrentPeriodLabel() {
+                var label;
+                if (this.currentView instanceof WeekView) {
+                    var weekStart = DateHelper.firstDayOfWeek(this.currentView.date);
+                    var weekEnd = DateHelper.lastDayOfWeek(this.currentView.date);
+
+                    if (weekStart.getMonth() == weekEnd.getMonth())
+                        label = DateHelper.format(weekStart, 'mmmm yyyy');
+                    else
+                        label = DateHelper.format(weekStart, 'mmmm') + ' - '
+                            + DateHelper.format(weekEnd, 'mmmm yyyy');
+
+                } else {
+                    label = DateHelper.format(this.currentView.date, 'mmmm yyyy');
+                }
+
+                this.$calendar.find('cj\\:RangeLabel').html(label);
+            }
+
+            /**
+             * Displayes popup message when dates range is changed.
+             *
+             * @private
+             */
+            function showRangeChangeMessage() {
+
+                // Setting displayed message text
+                var messageText = DateHelper.format(this.currentView.rangeStartDate, "mmm d") + ' - '
+                    + DateHelper.format(this.currentView.rangeEndDate, "mmm d");
+
+                // Creating message div
+                var message = $('<div/>')
+                    .html(messageText)
+                    .addClass('range-change-message')
+                    .appendTo(this.$el);
+
+                // Positioning message
+                var messagePosition = {
+                    top:this.$el.height() / 2 - (message.height() / 2),
+                    left:this.$el.width() / 2 - (message.width() / 2)
+                };
+
+                // Displaying message with fadeIn/fadeOut effects
+                message
+                    .css(messagePosition)
+                    .fadeIn(300, function () {
+                        $(this)
+                            .delay(500)
+                            .fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                    });
+            }
+
+            function toggleNonWorking() {
+                this.currentView.toggleNonWorking();
+            }
+
+            function prevBtn_clickHandler(event) {
+                console.log('prevBtn clicked!');
+            }
+
+            function currentView_rangeChangedHandler() {
+
+            }
+
+            function currentView_contextMenuHandler(entry) {
+                this.trigger('contextMenu', entry);
+            }
 
             /**
              * Mouse or touch down handler.
@@ -944,6 +1345,8 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
 
 
         };
+        Calendar.RANGE_CHANGED = 'rangeChanged';
+        Calendar.CONTEXT_MENU = 'contextMenu';
         Calendar.prototype = Object.create(Component.prototype);
 
         return Calendar;

@@ -6,7 +6,7 @@
  * Time: 4:54 PM
  */
 
-define([], function () {
+define(function () {
 
     var isTouch = 'ontouchstart' in window,
         MOUSE_DOWN = isTouch ? 'touchstart' : 'mousedown',
