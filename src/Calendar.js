@@ -10,6 +10,9 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
     function (Component, WeekView, MonthView, CalendarTpl, DateHelper) {
 
         var Calendar = function (options) {
+
+            this.RESIZE_EV = 'onorientationchange' in window ? 'orientationchange' : 'resize';
+
             // If el is not specified by the user using div as parent element
             if (!options) options = {el:'<div/>'};
 
@@ -49,7 +52,11 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 // Creating $calendar DOM
                 this.$calendar = $(CalendarTpl);
                 // Registering $calendar event handlers
-                this.$calendar.on('tbclick  cj\\:Button.btn-prev', prevBtn_clickHandler);
+                this.$calendar.on('tbclick  cj\\:Button.btn-prev', this.bindHandler(prevBtn_clickHandler, this));
+                this.$calendar.on('tbclick  cj\\:Button.btn-next', this.bindHandler(nextBtn_clickHandler, this));
+                this.$calendar.on('tbclick  cj\\:Button.btn-week-view', this.bindHandler(weekBtn_clickHandler, this));
+                this.$calendar.on('tbclick  cj\\:Button.btn-month-view', this.bindHandler(monthBtn_clickHandler, this));
+                this.$calendar.on('tbclick  cj\\:Button.btn-toggle-non-working', this.bindHandler(toggleBtn_clickHandler, this));
 
                 // Creating WeekView as initial current view
                 this.weekView = this.currentView = new WeekView({model:this.model, date:this.date});
@@ -73,6 +80,83 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                 return this;
             };
+
+            var windowHeight = null;
+
+            function resize(event) {
+                var that = event.data.context;
+                if (that.windowHeight != window.innerHeight)
+                    that.currentView.updateView.call(that.currentView);
+
+                that.windowHeight = window.innerHeight;
+            }
+
+            this.activate = function activate() {
+                this.windowHeight = window.innerHeight;
+                $(window).on(this.RESIZE_EV, {context:this}, this.resize);
+                this.currentView.updateView();
+            }
+
+            this.deactivate = function deactivate() {
+                $(window).off(this.RESIZE_EV, this.resize);
+                this.currentView.deactivateView();
+            }
+
+            function weekBtn_clickHandler() {
+                console.log('showWeekView called');
+                if (this.currentView != this.weekView) {
+
+                    // Detaching existing view
+                    this.currentView.$el.detach();
+
+                    // Changing current view reference
+                    this.currentView = this.weekView;
+                    // Appending current view to the DOM
+                    this.$el.append(this.currentView.el);
+                    // Updating date to display in current view
+                    this.currentView.showDate(this.date);
+
+                    // Dispatching viewChanged event
+                    this.trigger('viewChanged', {viewName:'WeekView'});
+                }
+            }
+
+            function monthBtn_clickHandler() {
+                console.log('showMonthView called');
+                if (this.currentView != this.monthView) {
+
+                    // Doing lazy initialization of the month view
+                    if (!this.monthView) {
+                        this.monthView = new MonthView({model:this.model, date:this.date});
+                        this.monthView.on('rangeChanged', this.currentView_rangeChangedHandler, this);
+                        this.monthView.on('contextMenu', this.currentView_contextMenuHandler, this);
+                        // Registering handler for container gesture events
+                        this.monthView.$el.on(this.MOUSE_DOWN_EV, {context:this}, this.container_mouseDownHandler);
+                        this.monthView.render();
+                    }
+
+                    // Detaching existing view
+                    this.currentView.$el.detach();
+
+                    // Changing current view reference
+                    this.currentView = this.monthView;
+                    // Appending current view to the DOM
+                    this.$el.append(this.currentView.el);
+                    // Updating date to display in current view
+                    this.currentView.showDate(this.date);
+
+                    // Dispatching viewChanged event
+                    this.trigger('viewChanged', {viewName:'MonthView'});
+                }
+            }
+
+            function nextBtn_clickHandler() {
+                this.currentView.next();
+            }
+
+            function prevBtn_clickHandler() {
+                this.currentView.prev();
+            }
 
             /**
              * Updates RangeLabel content based on currentView.date value.
@@ -99,7 +183,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
             }
 
             /**
-             * Displayes popup message when dates range is changed.
+             * Displays popup message when dates range is changed.
              *
              * @private
              */
@@ -133,16 +217,14 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                     });
             }
 
-            function toggleNonWorking() {
+            function toggleBtn_clickHandler() {
                 this.currentView.toggleNonWorking();
             }
 
-            function prevBtn_clickHandler(event) {
-                console.log('prevBtn clicked!');
-            }
-
             function currentView_rangeChangedHandler() {
-
+                this.date = this.currentView.date;
+                showRangeChangeMessage.call(this);
+                updateCurrentPeriodLabel.call(this);
             }
 
             function currentView_contextMenuHandler(entry) {
@@ -157,31 +239,95 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
              */
             function container_mouseDownHandler(event) {
                 alert('mouse down handle');
-
-//            var that = event.data.context;
-//
-//            // Getting touch point with touch coordinates, this depends on the runtime,
-//            // on devices it's part of touches array
-//            var touchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
-//                touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
-//
-//            // Setting touch point X and Y
-//            that.container_mouseDownHandler.touchPoint = {
-//                x:touchPoint.pageX,
-//                y:touchPoint.pageY
-//            };
-//
-//            if (touchesCount == 1) {
-//                // For desktop devices document needs to be a move and up target
-//                var moveTarget = $(document);
-//
-//                // Adding move and up listeners
-//                moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, that.container_mouseMoveHandler);
-//                moveTarget.on(that.MOUSE_UP_EV, {context:that}, that.container_mouseUpHandler);
-//            }
             }
 
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Swipe gesture events and context menu functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+            function currentView_contextMenuHandler(entry) {
+                // Bubbling up
+                this.trigger('contextMenu', entry);
+            }
+
+            function container_mouseDownHandler(event) {
+                var that = event.data.context;
+
+                // Getting touch point with touch coordinates, this depends on the runtime,
+                // on devices it's part of touches array
+                var touchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
+                    touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
+
+                // Setting touch point X and Y
+                that.container_mouseDownHandler.touchPoint = {
+                    x:touchPoint.pageX,
+                    y:touchPoint.pageY
+                };
+
+                if (touchesCount == 1) {
+                    // For desktop devices document needs to be a move and up target
+                    var moveTarget = $(document);
+
+                    // Adding move and up listeners
+                    moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, that.container_mouseMoveHandler);
+                    moveTarget.on(that.MOUSE_UP_EV, {context:that}, that.container_mouseUpHandler);
+                }
+            }
+
+            function container_mouseMoveHandler(event) {
+                var that = event.data.context,
+                    downTouchPoint = that.container_mouseDownHandler.touchPoint;
+
+                // Getting touch point with touch coordinates, this depends on the runtime,
+                // on devices it part of touches array
+                var moveTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
+                    touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
+
+                var xDelta = moveTouchPoint.pageX - downTouchPoint.x,
+                    yDelta = moveTouchPoint.pageY - downTouchPoint.y;
+
+                if (Math.abs(xDelta) >= 60 && Math.abs(yDelta) < 10 && touchesCount == 1) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    // For desktop devices document needs to be a move and up target
+                    var moveTarget = $(document);
+                    moveTarget.off(that.MOUSE_UP_EV, that.container_mouseUpHandler);
+                    moveTarget.off(that.MOUSE_MOVE_EV, that.container_mouseMoveHandler);
+
+                    if (xDelta > 0)
+                        that.currentView.prev();
+                    else if (xDelta < 0)
+                        that.currentView.next();
+                }
+            }
+
+            function container_mouseUpHandler(event) {
+                var that = event.data.context;
+
+                // For desktop devices document needs to be a move and up target
+                var moveTarget = $(document);
+                moveTarget.off(that.MOUSE_UP_EV, that.container_mouseUpHandler);
+                moveTarget.off(that.MOUSE_MOVE_EV, that.container_mouseMoveHandler);
+
+                // Getting touch point with touch coordinates, this depends on the runtime,
+                // on devices it's part of changedTouches array for TouchEnd event
+                var upTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.changedTouches[0] : event,
+                    downTouchPoint = that.container_mouseDownHandler.touchPoint;
+
+                // Detecting if this is container click
+                if (Math.abs(upTouchPoint.pageX - downTouchPoint.x) < 5
+                    && Math.abs(upTouchPoint.pageY - downTouchPoint.y) < 5) {
+
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    that.currentView.selectEventEntries(null);
+
+                    // HACK: Forcing reflow, on devices for some reason display doesn'up update
+                    that.currentView.$el.width();
+                }
+            }
         };
         Calendar.RANGE_CHANGED = 'rangeChanged';
         Calendar.CONTEXT_MENU = 'contextMenu';

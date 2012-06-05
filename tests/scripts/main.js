@@ -21,8 +21,8 @@ require.config({
 
 require(['jquery', 'Calendar'], function ($, Calendar) {
 
-    var cal = new Calendar({el:'#container'});
-    cal.render();
+    var cal = (new Calendar({el:'#container'})).render();
+    cal.activate();
 
 });
 
