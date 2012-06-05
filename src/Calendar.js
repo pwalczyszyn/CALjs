@@ -251,7 +251,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
             }
 
             function container_mouseDownHandler(event) {
-                var that = event.data.context;
+                var that = this;
 
                 // Getting touch point with touch coordinates, this depends on the runtime,
                 // on devices it's part of touches array
@@ -259,7 +259,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                     touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
 
                 // Setting touch point X and Y
-                that.container_mouseDownHandler.touchPoint = {
+                container_mouseDownHandler.touchPoint = {
                     x:touchPoint.pageX,
                     y:touchPoint.pageY
                 };
@@ -269,14 +269,14 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                     var moveTarget = $(document);
 
                     // Adding move and up listeners
-                    moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, that.container_mouseMoveHandler);
-                    moveTarget.on(that.MOUSE_UP_EV, {context:that}, that.container_mouseUpHandler);
+                    moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, container_mouseMoveHandler);
+                    moveTarget.on(that.MOUSE_UP_EV, {context:that}, container_mouseUpHandler);
                 }
             }
 
             function container_mouseMoveHandler(event) {
                 var that = event.data.context,
-                    downTouchPoint = that.container_mouseDownHandler.touchPoint;
+                    downTouchPoint = container_mouseDownHandler.touchPoint;
 
                 // Getting touch point with touch coordinates, this depends on the runtime,
                 // on devices it part of touches array
@@ -292,8 +292,8 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                     // For desktop devices document needs to be a move and up target
                     var moveTarget = $(document);
-                    moveTarget.off(that.MOUSE_UP_EV, that.container_mouseUpHandler);
-                    moveTarget.off(that.MOUSE_MOVE_EV, that.container_mouseMoveHandler);
+                    moveTarget.off(that.MOUSE_UP_EV, container_mouseUpHandler);
+                    moveTarget.off(that.MOUSE_MOVE_EV, container_mouseMoveHandler);
 
                     if (xDelta > 0)
                         that.currentView.prev();
@@ -307,13 +307,13 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                 // For desktop devices document needs to be a move and up target
                 var moveTarget = $(document);
-                moveTarget.off(that.MOUSE_UP_EV, that.container_mouseUpHandler);
-                moveTarget.off(that.MOUSE_MOVE_EV, that.container_mouseMoveHandler);
+                moveTarget.off(that.MOUSE_UP_EV, container_mouseUpHandler);
+                moveTarget.off(that.MOUSE_MOVE_EV, container_mouseMoveHandler);
 
                 // Getting touch point with touch coordinates, this depends on the runtime,
                 // on devices it's part of changedTouches array for TouchEnd event
                 var upTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.changedTouches[0] : event,
-                    downTouchPoint = that.container_mouseDownHandler.touchPoint;
+                    downTouchPoint = container_mouseDownHandler.touchPoint;
 
                 // Detecting if this is container click
                 if (Math.abs(upTouchPoint.pageX - downTouchPoint.x) < 5
