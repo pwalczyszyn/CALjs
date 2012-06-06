@@ -13,6 +13,9 @@ define(['Component', 'utils/DateHelper', 'text!WeekView.tpl!strip'],
             // Setting WeekView template as a root element
             options.el = WeekViewTpl;
 
+            // Initializing model if it's not set
+            if (!options.model) options.model = [];
+
             // Calling parent constructor
             Component.call(this, options);
 
@@ -75,13 +78,10 @@ define(['Component', 'utils/DateHelper', 'text!WeekView.tpl!strip'],
 
                 // Drawing background grid based on current hour height
                 drawCalendarGrid.call(this);
-//
-//            // Positioning hour labels based on current hour height
-//            this.positionHourLabels();
-//
-//            // Adding weeks entries
-//            this.addCalEvents();
-//
+
+                // Adding weeks entries
+                addCalEvents.call(this);
+
 //            // Refreshing scroller
 //            this.scroller.enable();
 //            this.scroller.refresh();
@@ -183,6 +183,519 @@ define(['Component', 'utils/DateHelper', 'text!WeekView.tpl!strip'],
                     this.$days.append(days);
             }
 
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // CalEvent handling functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            function addCalEvents() {
+                // Removing all previous entries
+                this.entries.forEach(removeEntryEventHandlers, this);
+
+                // Clearing entries array
+                this.entries.length = 0;
+
+                // Adding model entries
+                this.model.forEach(addCalEvent, this);
+            }
+
+            function addCalEvent(calEvent) {
+
+                var weekStartMs = this.rangeStartDate.getTime(),
+                    weekEndMs = this.rangeEndDate.getTime();
+
+                var entryStartTime = new Date(calEvent.get('StartDateTime')),
+                    entryStartTimeMs = entryStartTime.getTime(),
+                    entryEndTime = new Date(calEvent.get('EndDateTime')),
+                    entryEndTimeMs = entryEndTime.getTime();
+
+                if (entryStartTimeMs >= weekStartMs && entryStartTimeMs <= weekEndMs ||
+                    entryEndTimeMs >= weekStartMs && entryEndTimeMs <= weekEndMs) {
+
+                    // Array of entries grouped by day
+                    var dayEntries = {};
+
+                    while (entryStartTimeMs <= entryEndTimeMs) {
+
+                        // This day is not the end of the entry, setting end of the day in this case
+                        if (!DateHelper.sameDates(entryStartTime, entryEndTime)) {
+                            entryEndTime = new Date(entryStartTime);
+                            entryEndTime.setHours(23, 59, 59, 999);
+                        }
+
+                        // Checking if entry start is in the weeks range, if it is it can be appended
+                        if (entryStartTimeMs >= weekStartMs && entryStartTimeMs <= weekEndMs &&
+                            !(this.nonWorkingDays.indexOf(entryStartTime.getDay()) >= 0 && this.nonWorkingHidden)) {
+
+                            var entry = new WeekEntry(
+                                {
+                                    model:calEvent,
+                                    hourHeight:this.hourHeight,
+                                    startDateTime:entryStartTime,
+                                    endDateTime:entryEndTime
+                                });
+
+                            // Adding event listener for selected event
+                            entry.on('focused', this.entry_focusedHandler, this);
+                            entry.on('contextMenu', this.entry_contextMenuHandler, this);
+                            entry.on('barMove', this.entry_barMoveHandler, this);
+                            entry.on('barMoveEnd', this.entry_barMoveEndHandler, this);
+
+                            // Adding event listeners for d&d events
+                            entry.on('draggingStart', this.entry_draggingStartHandler, this);
+                            entry.on('dragging', this.entry_draggingHandler, this);
+                            entry.on('drop', this.entry_dropHandler, this);
+
+                            var entryDay = entryStartTime.getDay();
+                            (entryDay == 0) ? entryDay = 6 : entryDay--;
+
+                            // Creating entries group array if necessary
+                            if (!dayEntries.hasOwnProperty(entryDay))
+                                dayEntries[entryDay] = [];
+
+                            // adding entry to local associative array
+                            dayEntries[entryDay].push(entry.render().el);
+
+                            // Pushing entry component to the array
+                            this.entries.push(entry);
+                        }
+
+                        // Setting next day startDateTime
+                        entryStartTime = new Date(entryStartTime);
+                        entryStartTime.setTime(entryStartTime.getTime() + this.DAY_MS);
+                        entryStartTime.setHours(0, 0, 0, 0);
+                        entryStartTimeMs = entryStartTime.getTime();
+
+                        entryEndTime = new Date(calEvent.get('EndDateTime'));
+                    }
+
+                    // Adding created entries to the DOM
+                    for (var day in dayEntries)
+                        $(this.$days.children()[day]).append(dayEntries[day]);
+
+                    // Selecting event if it was previously selected
+                    if (calEvent == this.selectedEvent)
+                        selectEventEntries.call(this, calEvent);
+                }
+            }
+
+            function updateCalEvent(calEvent) {
+                removeCalEvent.call(this, calEvent);
+                addCalEvent.call(this, calEvent);
+            }
+
+            function removeCalEvent(calEvent) {
+                this.entries = this.entries.filter(function (entry) {
+                    var remove = entry.model == calEvent;
+                    if (remove)
+                        removeEntryEventHandlers.call(this, entry);
+                    return !remove;
+                }, this);
+            }
+
+            function removeEntryEventHandlers(entry) {
+                // Unregistering selected entry handlers
+                entry.off('focused', this.entry_focusedHandler);
+                entry.off('contextMenu', this.entry_contextMenuHandler);
+                entry.off('barMove', this.entry_barMoveHandler);
+                entry.off('barMoveEnd', this.entry_barMoveEndHandler);
+
+                // Unregistering d&d entry handlers
+                if (!entry.dragging) {
+                    entry.off('draggingStart', this.entry_draggingStartHandler);
+                    entry.off('dragging', this.entry_draggingHandler);
+                    entry.off('drop', this.entry_dropHandler);
+
+                    // Removing component from the DOM
+                    entry.remove();
+                }
+            }
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Entry drag & drop functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            function entry_draggingStartHandler(event) {
+
+                var entryModel = event.target.model,
+                    height = (entryModel.get('EndDateTime').getTime() - entryModel.get('StartDateTime').getTime()) /
+                        this.HOUR_MS * this.hourHeight;
+
+                var ghostEntry = entry_draggingStartHandler.ghostEntry = event.target.$el.clone();
+                ghostEntry.css({
+                    width:$(this.$days.children()[0]).width(),
+                    top:'none',
+                    bottom:'none',
+                    height:height,
+                    opacity:0.7
+                });
+
+                ghostEntry.appendTo(this.$container);
+                ghostEntry.offset({left:event.pageX - event.offsetX, top:event.pageY - event.offsetY});
+
+            }
+
+            function entry_draggingHandler(event) {
+
+                // Getting days offset
+                var daysOffset = this.$days.offset(),
+
+                // Day width, calculated based on first day
+                    dayWidth = this.$days.children().width(),
+
+                // Calculated total days width
+                    daysWidth = dayWidth * this.$days.children().length;
+
+                // Getting left and top based on dragging event params
+                var left = event.pageX - event.offsetX,
+                    top = event.pageY - event.offsetY;
+
+                if (event.pageX >= daysOffset.left && event.pageX <= daysOffset.left + daysWidth) {
+
+                    // Calculating day snapping
+                    var // Calculating day num
+                        dayNum = Math.floor((event.pageX - daysOffset.left) / dayWidth),
+
+                    // Getting day
+                        $day = $(this.$days.children()[dayNum]),
+
+                    // Day offset
+                        dayOffset = $day.offset(),
+
+                    // Day mid
+                        dayMid = dayOffset.left + (dayWidth / 2),
+
+                    // Touch point deviation from the middle of the entry
+                        deviation = (event.pageX - dayMid) / dayWidth;
+
+                    // entry left position
+                    left = dayOffset.left + dayWidth * 0.2 * deviation;
+
+                    // Restricting top value
+                    if (top < dayOffset.top)
+                        top = dayOffset.top;
+
+                    drawTimeChangeMarkers.call(this, {time:this.getNearestTime(top - dayOffset.top)});
+
+                    // Reseting weekChanged flag
+                    entry_draggingHandler.weekChanged = false;
+
+                } else {
+
+                    // User has to move back to days in order to make another week change
+                    if (!entry_draggingHandler.weekChanged) {
+
+                        // TODO: hiding is a hack because on devices removing element from a DOM which originates
+                        // the event stops subsequent events from firing
+                        event.target.$el.hide();
+                        event.target.$el.appendTo(this.$container);
+
+                        if (event.pageX < daysOffset.left)
+                            this.prev();
+                        else
+                            this.next();
+
+                        entry_draggingHandler.weekChanged = true;
+                    }
+                }
+
+                var ghostEntry = entry_draggingStartHandler.ghostEntry;
+                ghostEntry.offset({left:left, top:top});
+            }
+
+            function entry_dropHandler(event) {
+                var ghostEntry = entry_draggingStartHandler.ghostEntry;
+
+                // Removing dragged entry from the DOM
+                ghostEntry.remove();
+
+                // Clearing dragged entry
+                entry_draggingStartHandler.ghostEntry = null;
+
+                // Clearing markers
+                clearTimeChangeMarkers.call(this);
+
+                // Getting days offset
+                var daysOffset = this.$days.offset(),
+
+                // Day width, calculated based on first day
+                    dayWidth = this.$days.children().width(),
+
+                // Calculated total days width
+                    daysWidth = dayWidth * this.$days.children().length;
+
+                if (event.pageX >= daysOffset.left && event.pageX <= daysOffset.left + daysWidth) {
+
+                    var top = event.pageY - event.offsetY,
+
+                    // Calculating day num
+                        dayNum = Math.floor((event.pageX - daysOffset.left) / dayWidth),
+
+                    // Getting day
+                        $day = $(this.$days.children()[dayNum]),
+
+                    // Day offset
+                        dayOffset = $day.offset(),
+
+                    // Setting day date
+                        day = this.weekDays[dayNum];
+
+                    // Restricting top value
+                    if (top < dayOffset.top)
+                        top = dayOffset.top;
+
+                    var snappedStartTime = getNearestTime.call(this, top - dayOffset.top);
+
+                    var calEvent = event.target.model,
+                    // Entry start date time
+                        startDateTime = calEvent.get('StartDateTime'),
+                    // Entry end date time
+                        endDateTime = calEvent.get('EndDateTime'),
+                    // Entry duration
+                        duration = endDateTime.getTime() - startDateTime.getTime(),
+                    // New entry start and end
+                        newStartDateTime, newEndDateTime;
+
+                    newStartDateTime = new Date(day);
+                    newStartDateTime.setHours(
+                        snappedStartTime.getHours(),
+                        snappedStartTime.getMinutes(),
+                        snappedStartTime.getSeconds(),
+                        snappedStartTime.getMilliseconds()
+                    );
+
+                    // Calculating new end date time
+                    newEndDateTime = new Date(newStartDateTime.getTime() + duration);
+
+                    // Updating model with new dates
+                    if (!calEvent.set({StartDateTime:newStartDateTime, EndDateTime:newEndDateTime})) {
+                        throw new Error("Couldn't set calendar event dates!");
+                    }
+                }
+
+                // Forcing reflow, for some reason on iOS emulator it was required
+                this.$el.width();
+            }
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Entries selection functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            function entry_focusedHandler(entry) {
+                selectEventEntries.call(this, entry.model);
+            }
+
+            function selectEventEntries(calEvent) {
+                this.entries.forEach(function (entry) {
+
+                    if (calEvent == entry.model)
+                        entry.select();
+                    else if (entry.model == this.selectedEvent)
+                        entry.unselect();
+
+                }, this);
+
+                this.selectedEvent = calEvent;
+            }
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Side bars markers
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            function drawTimeChangeMarkers(changeInfo) {
+                // Restoring previous markers
+                var $markers = arguments.callee.markers;
+
+                // Clearing previous markers
+                arguments.callee.markers = null;
+                // Setting previous markers font-weight to normal
+                if ($markers && $markers.hasClass('hour-marker'))
+                    $markers.css('font-weight', 'normal');
+                // Removing previous minutes markers from DOM
+                else if ($markers && $markers.hasClass('minutes-marker'))
+                    $markers.remove();
+
+                if (changeInfo.time.getMinutes() == 0 || changeInfo.time.getMinutes() == 59) {
+
+                    var labelIndex = changeInfo.time.getMinutes() == 59 ? 24 : changeInfo.time.getHours();
+
+                    if (labelIndex == 0) {
+                        // TODO: implement 0:00 label
+                    } else if (labelIndex == 24) {
+                        // TODO: implement 24:00 label
+                    } else {
+                        $markers = $(this.$leftHours.children()[labelIndex - 1]);
+                        $markers = $markers.add(this.$rightHours.children()[labelIndex - 1]);
+                        $markers.css('font-weight', 'bold');
+                    }
+
+                } else {
+
+                    // TODO:
+                    // Creating new marker
+                    $markers = $('<span class="minutes-marker"/>');
+                    // Cloning marker for the right side and adding it to $markers set
+                    $markers = $markers.add($markers.clone());
+
+                    // Appending left marker
+                    this.$leftHours.append($markers[0]);
+                    // Appending right marker
+                    this.$rightHours.append($markers[1]);
+
+                    // TODO: make date format configurable
+                    $markers.html(DateHelper.format(changeInfo.time, ':MM'));
+
+                    // Setting markers top position
+                    $markers.css('top',
+                        (changeInfo.time.getHours() + changeInfo.time.getMinutes() / 60) * this.hourHeight + 'px');
+                }
+
+                // Caching for next call
+                arguments.callee.markers = $markers;
+            }
+
+            function clearTimeChangeMarkers() {
+                // Clearing hour:minutes markers
+                var $markers = drawTimeChangeMarkers.markers;
+                if ($markers) {
+                    // Nulling recent marker
+                    drawTimeChangeMarkers.markers = null;
+
+                    // Setting markers font-weight to normal
+                    if ($markers.hasClass('hour-marker'))
+                        $markers.css('font-weight', 'normal');
+                    // Removing minutes markers from DOM
+                    else if ($markers.hasClass('minutes-marker'))
+                        $markers.remove();
+                }
+            }
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Entry resize functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            function entry_barMoveHandler(event) {
+                var offsetY = event.offsetY,
+                    entry = event.target;
+
+                if (offsetY != 0) {
+                    // Calculating new height
+                    var newHeight = this.DAY_MS - (entry.entryTop + entry.entryBottom) + offsetY;
+
+                    // New snapped time
+                    var timeChange;
+
+                    if (event.bar == 'bottom') {
+                        var newBottom = entry.entryBottom - offsetY;
+                        if (newBottom >= 0 && newBottom + (this.hourHeight / 2) <= (24 * this.hourHeight - entry.entryTop)) {
+                            entry.entryBottom = newBottom;
+                            entry.$el.css({bottom:entry.entryBottom + 'px'});
+
+                            timeChange = getSnappedTime.call(this, event.bar, entry);
+                        }
+                    } else {
+                        var newTop = entry.entryTop + offsetY;
+                        if (newTop >= 0 && newTop + (this.hourHeight / 2) <= (24 * this.hourHeight - entry.entryBottom)) {
+                            entry.entryTop = newTop;
+                            entry.$el.css({top:entry.entryTop + 'px'});
+
+                            timeChange = getSnappedTime.call(this, event.bar, entry);
+                        }
+                    }
+
+                    if (timeChange) {
+
+                        if (!arguments.callee.timeChange || timeChange.getTime() != arguments.callee.timeChange.getTime())
+                            drawTimeChangeMarkers.call(this, {time:timeChange, bar:event.bar, target:entry});
+
+                        arguments.callee.timeChange = timeChange;
+                    }
+                }
+            }
+
+            function entry_barMoveEndHandler(event) {
+                console.log('');
+                var entry = event.target;
+
+                var snappedTime = getSnappedTime.call(this, event.bar, entry);
+                var modelUpdate;
+                if (event.bar == 'bottom') {
+                    entry.endDateTime = snappedTime;
+                    modelUpdate = {EndDateTime:snappedTime};
+                } else {
+                    entry.startDateTime = snappedTime;
+                    modelUpdate = {StartDateTime:snappedTime};
+                }
+
+                if (entry.model.set(modelUpdate, {silent:true})) {
+
+                    entry.model.change({calChange:true});
+
+                    entry.measure.call(entry);
+                    entry.$el.css({top:entry.entryTop + 'px', bottom:entry.entryBottom + 'px'});
+
+                } else {
+                    throw new Error('Error updating CalEvent start or end date!');
+                }
+
+                clearTimeChangeMarkers.call(this);
+            }
+
+            function getSnappedTime(bar, entry) {
+                var that = entry;
+                var startingDateTime = bar == 'bottom' ? that.endDateTime : that.startDateTime,
+                    startingPosition = bar == 'bottom' ? (24 * that.hourHeight - that.entryBottom) : that.entryTop;
+
+                var snappedHour = getNearestTime.call(this, startingPosition),
+                    result = new Date(startingDateTime);
+                result.setHours(
+                    snappedHour.getHours(),
+                    snappedHour.getMinutes(),
+                    snappedHour.getSeconds(),
+                    snappedHour.getMilliseconds()
+                );
+
+                return result;
+            }
+
+            function getNearestTime(from) {
+                var that = this;
+                var hour = from / that.hourHeight * that.HOUR_MS,
+                    modMs = hour % (that.HOUR_MS * 0.25);
+
+                if (modMs > 7.5 * that.MINUTE_MS)
+                    hour = hour - modMs + 15 * this.MINUTE_MS;
+                else
+                    hour = hour - modMs;
+
+                var result = new Date(hour);
+                // Converting to locale aware date
+                result.setHours(result.getUTCHours(),
+                    result.getUTCMinutes(),
+                    result.getUTCMinutes(),
+                    result.getUTCMilliseconds());
+
+                // If snap is before 0:00 time
+                if (result.getMonth() > 1)
+                    result.setTime(0);
+                // If snap is after 23:59:59:999
+                else if (result.getDate() > 1)
+                    result.setTime(result.getTime() - 1);
+
+                return result;
+            }
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Context menu functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            function entry_contextMenuHandler(entry) {
+                // Bubbling up
+                this.trigger('contextMenu', entry);
+            }
         };
         WeekView.prototype = Object.create(Component.prototype);
 
