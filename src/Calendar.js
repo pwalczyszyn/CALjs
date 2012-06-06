@@ -6,7 +6,8 @@
  * Time: 12:53 PM
  */
 
-define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/DateHelper', 'utils/TouchButtons'],
+define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/DateHelper',
+        'utils/TouchButtons'],
     function (Component, WeekView, MonthView, CalendarTpl, DateHelper) {
 
         var Calendar = function (options) {
@@ -59,7 +60,8 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 this.$calendar.on('tbclick cj\\:Button.btn-toggle-non-working', this.bindHandler(toggleBtn_clickHandler, this));
 
                 // Creating WeekView as initial current view
-                this.weekView = this.currentView = new WeekView({model:this.model, date:this.date});
+                this.weekView = this.currentView = new WeekView({model:this.model, date:this.date,
+                    entryTemplate:this.options.weekEntryTemplate});
                 // Adding range changed handler
                 this.weekView.on(Calendar.RANGE_CHANGED, currentView_rangeChangedHandler, this);
                 // Adding context menu handler

@@ -6,8 +6,8 @@
  * Time: 1:06 PM
  */
 
-define(['Component', 'utils/DateHelper', 'text!WeekView.tpl!strip'],
-    function (Component, DateHelper, WeekViewTpl) {
+define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip'],
+    function (Component, WeekEntry, DateHelper, WeekViewTpl) {
 
         var WeekView = function (options) {
             // Setting WeekView template as a root element
@@ -231,7 +231,8 @@ define(['Component', 'utils/DateHelper', 'text!WeekView.tpl!strip'],
                                     model:calEvent,
                                     hourHeight:this.hourHeight,
                                     startDateTime:entryStartTime,
-                                    endDateTime:entryEndTime
+                                    endDateTime:entryEndTime,
+                                    el:this.options.entryTemplate
                                 });
 
                             // Adding event listener for selected event

@@ -145,6 +145,28 @@ cj\:WeekDayHeader:nth-child(odd), cj\:WeekDay:nth-child(odd) {
     background-color: #F1F1F1;
 }
 
+cj\:WeekEntry {
+    display: block;
+    position: absolute;
+    background-color: white;
+    width: 100%;
+}
+
+cj\:ColorBar {
+    display: block;
+    position: absolute;
+    height: 100%;
+    left: 0;
+    width: 8px;
+}
+
+cj\:Content {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
 /*******************************************************
 * Touch Buttons
 *******************************************************/
