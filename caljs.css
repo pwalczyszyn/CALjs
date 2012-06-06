@@ -3,9 +3,10 @@
 cj\:Calendar {
     display: inline-block;
     position: relative;
-    background-color: #dcdcdc;
     min-width: 300px;
     min-height: 250px;
+    font-family: Helvetica;
+    background-color: whiteSmoke;
 }
 
 cj\:NavigationBar {
@@ -32,7 +33,6 @@ cj\:NavigationBarRight {
 cj\:WeekView {
     display: block;
     position: absolute;
-    background-color: #808080;
     width: 100%;
     top: 60px;
     bottom: 0;
@@ -42,9 +42,112 @@ cj\:RangeLabel {
     display: inline-block;
 }
 
+cj\:Headers {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 48px;
+    right: 48px;
+    height: 47px;
+}
+
+cj\:WeekDayHeader {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    line-height: 47px;
+    font-size: 0.8em;
+    color: #6d6e71;
+    background-size: 100% 100%;
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
+}
+
+cj\:WeekDayHeader:last-child {
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99%, rgba(215, 215, 215, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
+}
+
+cj\:WeekDayHeader cj\:Label:first-child {
+    float: left;
+    margin-left: 10px;
+}
+
+cj\:WeekDayHeader cj\:Label:last-child {
+    float: right;
+    margin-right: 10px;
+}
+
+cj\:WeekDayHeader.today {
+    font-weight: bold;
+    color: #0078d4;
+}
+
+cj\:Scroller {
+    display: block;
+    position: absolute;
+    overflow: scroll;
+    top: 50px;
+    width: 100%;
+    bottom: 0;
+}
+
+cj\:Container {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+cj\:LeftHours, cj\:RightHours {
+    display: inline-block;
+    position: absolute;
+    color: #6d6e71;
+    width: 48px;
+    height: 100%;
+    font-size: 0.6em;
+}
+
+cj\:LeftHours {
+    left: 0;
+}
+
+cj\:RightHours {
+    right: 0;
+}
+
+cj\:LeftHours > cj\:Label, cj\:RightHours > cj\:Label {
+    display: block;
+    position: relative;
+    text-align: center;
+    height: 4.16666666666667%;
+}
+
+cj\:WeekDays {
+    display: block;
+    position: absolute;
+    left: 48px;
+    right: 48px;
+    height: 100%;
+}
+
+cj\:WeekDay {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    border-bottom: solid 1px rgba(200, 200, 200, 1);
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+}
+
+cj\:WeekDay:last-child {
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99%, rgba(200, 200, 200, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+}
+
+cj\:WeekDayHeader:nth-child(odd), cj\:WeekDay:nth-child(odd) {
+    background-color: #F1F1F1;
+}
+
 /*******************************************************
- * Touch Buttons
- *******************************************************/
+* Touch Buttons
+*******************************************************/
 cj\:Button {
     display: inline-block;
     height: 30px;

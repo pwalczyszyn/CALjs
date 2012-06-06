@@ -52,11 +52,11 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 // Creating $calendar DOM
                 this.$calendar = $(CalendarTpl);
                 // Registering $calendar event handlers
-                this.$calendar.on('tbclick  cj\\:Button.btn-prev', this.bindHandler(prevBtn_clickHandler, this));
-                this.$calendar.on('tbclick  cj\\:Button.btn-next', this.bindHandler(nextBtn_clickHandler, this));
-                this.$calendar.on('tbclick  cj\\:Button.btn-week-view', this.bindHandler(weekBtn_clickHandler, this));
-                this.$calendar.on('tbclick  cj\\:Button.btn-month-view', this.bindHandler(monthBtn_clickHandler, this));
-                this.$calendar.on('tbclick  cj\\:Button.btn-toggle-non-working', this.bindHandler(toggleBtn_clickHandler, this));
+                this.$calendar.on('tbclick cj\\:Button.btn-prev', this.bindHandler(prevBtn_clickHandler, this));
+                this.$calendar.on('tbclick cj\\:Button.btn-next', this.bindHandler(nextBtn_clickHandler, this));
+                this.$calendar.on('tbclick cj\\:Button.btn-week-view', this.bindHandler(weekBtn_clickHandler, this));
+                this.$calendar.on('tbclick cj\\:Button.btn-month-view', this.bindHandler(monthBtn_clickHandler, this));
+                this.$calendar.on('tbclick cj\\:Button.btn-toggle-non-working', this.bindHandler(toggleBtn_clickHandler, this));
 
                 // Creating WeekView as initial current view
                 this.weekView = this.currentView = new WeekView({model:this.model, date:this.date});

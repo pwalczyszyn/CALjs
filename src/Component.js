@@ -71,10 +71,8 @@ define([], function () {
             }
 
             this.options = options;
-            if (this.options) {
-                if (this.options.el) this.setElement(this.options.el);
-                if (this.options.model) this.setModel(this.options.model);
-            }
+            this.setElement(options ? options.el : null);
+            this.setModel(options ? options.model : null);
         };
 
         Component.prototype.setElement = function (el) {
