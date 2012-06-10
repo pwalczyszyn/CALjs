@@ -236,15 +236,15 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                                 });
 
                             // Adding event listener for selected event
-                            entry.on('focused', this.entry_focusedHandler, this);
-                            entry.on('contextMenu', this.entry_contextMenuHandler, this);
-                            entry.on('barMove', this.entry_barMoveHandler, this);
-                            entry.on('barMoveEnd', this.entry_barMoveEndHandler, this);
+                            entry.on('focused', entry_focusedHandler, this);
+                            entry.on('contextMenu', entry_contextMenuHandler, this);
+                            entry.on('barMove', entry_barMoveHandler, this);
+                            entry.on('barMoveEnd', entry_barMoveEndHandler, this);
 
                             // Adding event listeners for d&d events
-                            entry.on('draggingStart', this.entry_draggingStartHandler, this);
-                            entry.on('dragging', this.entry_draggingHandler, this);
-                            entry.on('drop', this.entry_dropHandler, this);
+                            entry.on('draggingStart', entry_draggingStartHandler, this);
+                            entry.on('dragging', entry_draggingHandler, this);
+                            entry.on('drop', entry_dropHandler, this);
 
                             var entryDay = entryStartTime.getDay();
                             (entryDay == 0) ? entryDay = 6 : entryDay--;
@@ -275,7 +275,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
                     // Selecting event if it was previously selected
                     if (calEvent == this.selectedEvent)
-                        selectEventEntries.call(this, calEvent);
+                        this.selectEventEntries.call(this, calEvent);
                 }
             }
 
@@ -295,16 +295,16 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
             function removeEntryEventHandlers(entry) {
                 // Unregistering selected entry handlers
-                entry.off('focused', this.entry_focusedHandler);
-                entry.off('contextMenu', this.entry_contextMenuHandler);
-                entry.off('barMove', this.entry_barMoveHandler);
-                entry.off('barMoveEnd', this.entry_barMoveEndHandler);
+                entry.off('focused', entry_focusedHandler);
+                entry.off('contextMenu', entry_contextMenuHandler);
+                entry.off('barMove', entry_barMoveHandler);
+                entry.off('barMoveEnd', entry_barMoveEndHandler);
 
                 // Unregistering d&d entry handlers
                 if (!entry.dragging) {
-                    entry.off('draggingStart', this.entry_draggingStartHandler);
-                    entry.off('dragging', this.entry_draggingHandler);
-                    entry.off('drop', this.entry_dropHandler);
+                    entry.off('draggingStart', entry_draggingStartHandler);
+                    entry.off('dragging', entry_draggingHandler);
+                    entry.off('drop', entry_dropHandler);
 
                     // Removing component from the DOM
                     entry.remove();
@@ -376,7 +376,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                     if (top < dayOffset.top)
                         top = dayOffset.top;
 
-                    drawTimeChangeMarkers.call(this, {time:this.getNearestTime(top - dayOffset.top)});
+                    drawTimeChangeMarkers.call(this, {time:getNearestTime.call(this, (top - dayOffset.top))});
 
                     // Reseting weekChanged flag
                     entry_draggingHandler.weekChanged = false;
@@ -484,20 +484,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             function entry_focusedHandler(entry) {
-                selectEventEntries.call(this, entry.model);
-            }
-
-            function selectEventEntries(calEvent) {
-                this.entries.forEach(function (entry) {
-
-                    if (calEvent == entry.model)
-                        entry.select();
-                    else if (entry.model == this.selectedEvent)
-                        entry.unselect();
-
-                }, this);
-
-                this.selectedEvent = calEvent;
+                this.selectEventEntries.call(this, entry.model);
             }
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -699,6 +686,19 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
             }
         };
         WeekView.prototype = Object.create(Component.prototype);
+
+        WeekView.prototype.selectEventEntries = function (calEvent) {
+            this.entries.forEach(function (entry) {
+
+                if (calEvent == entry.model)
+                    entry.select();
+                else if (entry.model == this.selectedEvent)
+                    entry.unselect();
+
+            }, this);
+
+            this.selectedEvent = calEvent;
+        }
 
         return WeekView;
     });

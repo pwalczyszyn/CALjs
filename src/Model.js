@@ -10,6 +10,7 @@ define(['EventDispatcher'],
     function (EventDispatcher) {
 
         var Model = function (properties) {
+            EventDispatcher.call(this);
             this.properties = properties ? properties : {};
         };
         Model.prototype = Object.create(EventDispatcher.prototype);
