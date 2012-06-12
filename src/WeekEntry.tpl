@@ -4,7 +4,9 @@
 <cj:WeekEntry>
     <cj:ColorBar></cj:ColorBar>
     <cj:Content>
-        <cj:Label class="week-entry-title"></cj:Label>
+        <cj:Centered>
+            <cj:Label class="week-entry-title"></cj:Label>
+        </cj:Centered>
     </cj:Content>
 </cj:WeekEntry>
 

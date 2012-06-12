@@ -6,57 +6,57 @@
     <cj:Scroller>
         <cj:Container>
             <cj:LeftHours>
-                <cj:Label></cj:Label>
-                <cj:Label>01 AM</cj:Label>
-                <cj:Label>02 AM</cj:Label>
-                <cj:Label>03 AM</cj:Label>
-                <cj:Label>04 AM</cj:Label>
-                <cj:Label>05 AM</cj:Label>
-                <cj:Label>06 AM</cj:Label>
-                <cj:Label>07 AM</cj:Label>
-                <cj:Label>08 AM</cj:Label>
-                <cj:Label>09 AM</cj:Label>
-                <cj:Label>10 AM</cj:Label>
-                <cj:Label>11 AM</cj:Label>
-                <cj:Label>12 PM</cj:Label>
-                <cj:Label>01 PM</cj:Label>
-                <cj:Label>02 PM</cj:Label>
-                <cj:Label>03 PM</cj:Label>
-                <cj:Label>04 PM</cj:Label>
-                <cj:Label>05 PM</cj:Label>
-                <cj:Label>06 PM</cj:Label>
-                <cj:Label>07 PM</cj:Label>
-                <cj:Label>08 PM</cj:Label>
-                <cj:Label>09 PM</cj:Label>
-                <cj:Label>10 PM</cj:Label>
-                <cj:Label>11 PM</cj:Label>
+                <cj:Label class="hour-marker"></cj:Label>
+                <cj:Label class="hour-marker">01 AM</cj:Label>
+                <cj:Label class="hour-marker">02 AM</cj:Label>
+                <cj:Label class="hour-marker">03 AM</cj:Label>
+                <cj:Label class="hour-marker">04 AM</cj:Label>
+                <cj:Label class="hour-marker">05 AM</cj:Label>
+                <cj:Label class="hour-marker">06 AM</cj:Label>
+                <cj:Label class="hour-marker">07 AM</cj:Label>
+                <cj:Label class="hour-marker">08 AM</cj:Label>
+                <cj:Label class="hour-marker">09 AM</cj:Label>
+                <cj:Label class="hour-marker">10 AM</cj:Label>
+                <cj:Label class="hour-marker">11 AM</cj:Label>
+                <cj:Label class="hour-marker">12 PM</cj:Label>
+                <cj:Label class="hour-marker">01 PM</cj:Label>
+                <cj:Label class="hour-marker">02 PM</cj:Label>
+                <cj:Label class="hour-marker">03 PM</cj:Label>
+                <cj:Label class="hour-marker">04 PM</cj:Label>
+                <cj:Label class="hour-marker">05 PM</cj:Label>
+                <cj:Label class="hour-marker">06 PM</cj:Label>
+                <cj:Label class="hour-marker">07 PM</cj:Label>
+                <cj:Label class="hour-marker">08 PM</cj:Label>
+                <cj:Label class="hour-marker">09 PM</cj:Label>
+                <cj:Label class="hour-marker">10 PM</cj:Label>
+                <cj:Label class="hour-marker">11 PM</cj:Label>
             </cj:LeftHours>
             <cj:WeekDays></cj:WeekDays>
             <cj:RightHours>
-                <cj:Label></cj:Label>
-                <cj:Label>01 AM</cj:Label>
-                <cj:Label>02 AM</cj:Label>
-                <cj:Label>03 AM</cj:Label>
-                <cj:Label>04 AM</cj:Label>
-                <cj:Label>05 AM</cj:Label>
-                <cj:Label>06 AM</cj:Label>
-                <cj:Label>07 AM</cj:Label>
-                <cj:Label>08 AM</cj:Label>
-                <cj:Label>09 AM</cj:Label>
-                <cj:Label>10 AM</cj:Label>
-                <cj:Label>11 AM</cj:Label>
-                <cj:Label>12 PM</cj:Label>
-                <cj:Label>01 PM</cj:Label>
-                <cj:Label>02 PM</cj:Label>
-                <cj:Label>03 PM</cj:Label>
-                <cj:Label>04 PM</cj:Label>
-                <cj:Label>05 PM</cj:Label>
-                <cj:Label>06 PM</cj:Label>
-                <cj:Label>07 PM</cj:Label>
-                <cj:Label>08 PM</cj:Label>
-                <cj:Label>09 PM</cj:Label>
-                <cj:Label>10 PM</cj:Label>
-                <cj:Label>11 PM</cj:Label>
+                <cj:Label class="hour-marker"></cj:Label>
+                <cj:Label class="hour-marker">01 AM</cj:Label>
+                <cj:Label class="hour-marker">02 AM</cj:Label>
+                <cj:Label class="hour-marker">03 AM</cj:Label>
+                <cj:Label class="hour-marker">04 AM</cj:Label>
+                <cj:Label class="hour-marker">05 AM</cj:Label>
+                <cj:Label class="hour-marker">06 AM</cj:Label>
+                <cj:Label class="hour-marker">07 AM</cj:Label>
+                <cj:Label class="hour-marker">08 AM</cj:Label>
+                <cj:Label class="hour-marker">09 AM</cj:Label>
+                <cj:Label class="hour-marker">10 AM</cj:Label>
+                <cj:Label class="hour-marker">11 AM</cj:Label>
+                <cj:Label class="hour-marker">12 PM</cj:Label>
+                <cj:Label class="hour-marker">01 PM</cj:Label>
+                <cj:Label class="hour-marker">02 PM</cj:Label>
+                <cj:Label class="hour-marker">03 PM</cj:Label>
+                <cj:Label class="hour-marker">04 PM</cj:Label>
+                <cj:Label class="hour-marker">05 PM</cj:Label>
+                <cj:Label class="hour-marker">06 PM</cj:Label>
+                <cj:Label class="hour-marker">07 PM</cj:Label>
+                <cj:Label class="hour-marker">08 PM</cj:Label>
+                <cj:Label class="hour-marker">09 PM</cj:Label>
+                <cj:Label class="hour-marker">10 PM</cj:Label>
+                <cj:Label class="hour-marker">11 PM</cj:Label>
             </cj:RightHours>
         </cj:Container>
     </cj:Scroller>

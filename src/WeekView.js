@@ -331,7 +331,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                     opacity:0.7
                 });
 
-                ghostEntry.appendTo(this.$container);
+                ghostEntry.appendTo(this.$scroller);
                 ghostEntry.offset({left:event.pageX - event.offsetX, top:event.pageY - event.offsetY});
 
             }
@@ -389,7 +389,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                         // TODO: hiding is a hack because on devices removing element from a DOM which originates
                         // the event stops subsequent events from firing
                         event.target.$el.hide();
-                        event.target.$el.appendTo(this.$container);
+                        event.target.$el.appendTo(this.$scroller);
 
                         if (event.pageX < daysOffset.left)
                             this.prev();
@@ -499,7 +499,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                 arguments.callee.markers = null;
                 // Setting previous markers font-weight to normal
                 if ($markers && $markers.hasClass('hour-marker'))
-                    $markers.css('font-weight', 'normal');
+                    $markers.css('font-weight', '');
                 // Removing previous minutes markers from DOM
                 else if ($markers && $markers.hasClass('minutes-marker'))
                     $markers.remove();
@@ -507,14 +507,13 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                 if (changeInfo.time.getMinutes() == 0 || changeInfo.time.getMinutes() == 59) {
 
                     var labelIndex = changeInfo.time.getMinutes() == 59 ? 24 : changeInfo.time.getHours();
-
                     if (labelIndex == 0) {
                         // TODO: implement 0:00 label
                     } else if (labelIndex == 24) {
                         // TODO: implement 24:00 label
                     } else {
-                        $markers = $(this.$leftHours.children()[labelIndex - 1]);
-                        $markers = $markers.add(this.$rightHours.children()[labelIndex - 1]);
+                        $markers = $(this.$leftHours.children()[labelIndex]);
+                        $markers = $markers.add(this.$rightHours.children()[labelIndex]);
                         $markers.css('font-weight', 'bold');
                     }
 
@@ -522,7 +521,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
                     // TODO:
                     // Creating new marker
-                    $markers = $('<span class="minutes-marker"/>');
+                    $markers = $('<cj:Label class="minutes-marker"/>');
                     // Cloning marker for the right side and adding it to $markers set
                     $markers = $markers.add($markers.clone());
 
@@ -621,7 +620,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
                     entry.model.change({calChange:true});
 
-                    entry.measure.call(entry);
+                    entry.measure();
                     entry.$el.css({top:entry.entryTop + 'px', bottom:entry.entryBottom + 'px'});
 
                 } else {

@@ -121,6 +121,14 @@ cj\:LeftHours > cj\:Label, cj\:RightHours > cj\:Label {
     height: 4.16666666666667%;
 }
 
+cj\:Label.minutes-marker {
+    position: absolute;
+    font-weight: bold;
+    text-align: right;
+    width: 100%;
+    margin-top: -0.5em;
+}
+
 cj\:WeekDays {
     display: block;
     position: absolute;
@@ -187,10 +195,18 @@ cj\:ColorBar {
 }
 
 cj\:Content {
-    display: block;
+    display: table;
     position: absolute;
-    width: 100%;
     height: 100%;
+    width: 100%;
+    padding-left: 8px;
+    box-sizing: border-box;
+}
+
+cj\:Centered {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
 }
 
 /*******************************************************
