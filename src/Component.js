@@ -40,6 +40,11 @@ define(['EventDispatcher'], function (EventDispatcher) {
             return this;
         };
 
+        Component.prototype.remove = function remove() {
+            this.off();
+            this.$el.remove();
+        };
+
         return Component;
     }
 );

@@ -69,6 +69,42 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 //        this.model.on('remove', this.model_removeHandler, this);
 //        this.model.on('change', this.model_changeHandler, this);
 
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // WeekView navigation functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            this.showDate = function showDate(date) {
+                this.date = date;
+                this.updateView();
+            }
+
+            this.next = function next() {
+                this.currentScrollHour = this.$container.position().top / this.hourHeight;
+
+                var nextDate = new Date(this.rangeStartDate);
+                nextDate.setDate(nextDate.getDate() + 7);
+                this.showDate(nextDate);
+
+                this.trigger('rangeChanged');
+            }
+
+            this.prev = function prev() {
+                this.currentScrollHour = this.$container.position().top / this.hourHeight;
+
+                var prevDate = new Date(this.rangeStartDate);
+                prevDate.setDate(prevDate.getDate() - 7);
+                this.showDate(prevDate);
+
+                this.trigger('rangeChanged');
+            }
+
+            this.toggleNonWorking = function toggleNonWorking() {
+                this.currentScrollHour = this.$container.position().top / this.hourHeight;
+
+                this.nonWorkingHidden = !this.nonWorkingHidden;
+                this.updateView();
+            }
+
             this.updateView = function updateView() {
                 // Setting week range dates
                 setRangeDates.call(this);
@@ -86,6 +122,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 //            this.scroller.enable();
 //            this.scroller.refresh();
 //            this.scroller.scrollTo(0, this.currentScrollHour * this.hourHeight, 200);
+                this.$scroller.scrollTop(Math.abs(this.currentScrollHour) * this.hourHeight);
             }
 
             function setRangeDates() {
@@ -112,40 +149,28 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
             function drawCalendarGrid() {
                 var $header,
                     $day,
-                    dayWidth,
+                    $daysChildren = this.$days.children(),
+                    $headersChildren = this.$headers.children(),
+                    dayWidth = this.nonWorkingHidden ? 100 / (7 - this.nonWorkingDays.length) : 100 / 7,
                     day = this.rangeStartDate,
-                    now = new Date,
-                    headers = [],
-                    days = [];
+                    now = new Date;
 
                 this.weekDays.length = 0;
 
                 for (var i = 0; i < 7; i++) {
-                    if (this.nonWorkingHidden && this.nonWorkingDays.indexOf(day.getDay()) >= 0)
-                        continue;
+                    $day = $($daysChildren.get(i));
+                    $header = $($headersChildren.get(i));
 
-                    // Pushing day date into the weekDays array
-                    this.weekDays.push(day);
+                    if (this.nonWorkingHidden && this.nonWorkingDays.indexOf(day.getDay()) >= 0) {
+                        $day.css({display:'none'});
+                        $header.css({display:'none'});
+                    } else {
+                        $day.css({display:'inline-block'});
+                        $header.css({display:'inline-block'});
+                    }
 
-                    // Calculating day width
-                    if (this.nonWorkingHidden)
-                        dayWidth = 100 / (7 - this.nonWorkingDays.length);
-                    else
-                        dayWidth = 100 / 7;
-
-                    // Creating new day column
-                    $header = $('<cj:WeekDayHeader><cj:Label>' + DateHelper.format(day, "d") + '</cj:Label><cj:Label>' +
-                        DateHelper.format(day, "ddd") + '</cj:Label></cj:WeekDayHeader>').css('width', dayWidth + '%');
-
-                    // Adding to local array
-                    headers.push($header[0]);
-
-                    // Creating new day column
-                    $day = $('<cj:WeekDay />').css(
-                        {'background-size':'100% ' + this.hourHeight + 'px', 'width':dayWidth + '%', height:this.hourHeight * 24});
-
-                    // Adding to local array
-                    days.push($day[0]);
+                    $header.children().get(0).innerText = DateHelper.format(day, "d");
+                    $header.children().get(1).innerText = DateHelper.format(day, "ddd");
 
                     // Setting today class
                     if (day.getYear() == now.getYear() && day.getMonth() == now.getMonth() && day.getDate() == now.getDate()) {
@@ -159,6 +184,9 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                         $header.addClass('non-working');
                     }
 
+                    // Pushing day date into the weekDays array
+                    this.weekDays.push(day);
+
                     // Incrementing to next day
                     day = DateHelper.addDays(day, 1);
                 }
@@ -166,21 +194,8 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                 // Setting days canvas height, this +1 is additional pixel for bottom border
                 this.$container.height(this.hourHeight * 24 + 1);
 
-                // Removing existing headers
-                if (this.$headers.length > 0)
-                    this.$headers.empty();
-
-                if (headers.length > 0)
-                // Appending day column to the canvas
-                    this.$headers.append(headers);
-
-                // Removing existing days
-                if (this.$days.length > 0)
-                    this.$days.empty();
-
-                if (days.length > 0)
-                // Appending day column to the canvas
-                    this.$days.append(days);
+                $headersChildren.css('width', dayWidth + '%');
+                $daysChildren.empty().css({'background-size':'100% ' + this.hourHeight + 'px', 'width':dayWidth + '%', height:this.hourHeight * 24});
             }
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
