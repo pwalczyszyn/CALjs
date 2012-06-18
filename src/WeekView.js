@@ -157,6 +157,10 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
                 this.weekDays.length = 0;
 
+                // Clearing today and non-working classes
+                $daysChildren.removeClass('today non-working');
+                $headersChildren.removeClass('today non-working');
+
                 for (var i = 0; i < 7; i++) {
                     $day = $($daysChildren.get(i));
                     $header = $($headersChildren.get(i));
@@ -195,7 +199,11 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                 this.$container.height(this.hourHeight * 24 + 1);
 
                 $headersChildren.css('width', dayWidth + '%');
-                $daysChildren.empty().css({'background-size':'100% ' + this.hourHeight + 'px', 'width':dayWidth + '%', height:this.hourHeight * 24});
+                $daysChildren.empty().css({
+                    'background-size':'100% ' + this.hourHeight + 'px',
+                    width:dayWidth + '%',
+                    height:this.hourHeight * 24
+                });
             }
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////

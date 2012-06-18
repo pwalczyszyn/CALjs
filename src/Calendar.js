@@ -105,7 +105,6 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
             }
 
             function weekBtn_clickHandler() {
-                console.log('showWeekView called');
                 if (this.currentView != this.weekView) {
 
                     // Detaching existing view
@@ -124,7 +123,6 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
             }
 
             function monthBtn_clickHandler() {
-                console.log('showMonthView called');
                 if (this.currentView != this.monthView) {
 
                     // Doing lazy initialization of the month view
@@ -190,23 +188,21 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
              * @private
              */
             function showRangeChangeMessage() {
-
                 // Setting displayed message text
                 var messageText = DateHelper.format(this.currentView.rangeStartDate, "mmm d") + ' - '
                     + DateHelper.format(this.currentView.rangeEndDate, "mmm d");
 
                 // Creating message div
-                var message = $('<cj\\:RangeChangeMessage>' + messageText + '</cj\\:RangeChangeMessage>').appendTo(this.$el);
+                var message = $('<cj:RangeChangeMessage/>').html(messageText).appendTo(this.$calendar);
 
                 // Positioning message
                 var messagePosition = {
-                    top:this.$el.height() / 2 - (message.height() / 2),
-                    left:this.$el.width() / 2 - (message.width() / 2)
+                    top:this.$calendar.height() / 2 - (message.height() / 2),
+                    left:this.$calendar.width() / 2 - (message.width() / 2)
                 };
 
                 // Displaying message with fadeIn/fadeOut effects
-                message
-                    .css(messagePosition)
+                message.css(messagePosition)
                     .fadeIn(300, function () {
                         $(this)
                             .delay(500)
