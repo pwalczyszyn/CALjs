@@ -3,34 +3,6 @@
 
 <cj:WeekView>
     <cj:Headers>
-        <cj:WeekDayHeader>
-            <cj:Label></cj:Label>
-            <cj:Label></cj:Label>
-        </cj:WeekDayHeader>
-        <cj:WeekDayHeader>
-            <cj:Label></cj:Label>
-            <cj:Label></cj:Label>
-        </cj:WeekDayHeader>
-        <cj:WeekDayHeader>
-            <cj:Label></cj:Label>
-            <cj:Label></cj:Label>
-        </cj:WeekDayHeader>
-        <cj:WeekDayHeader>
-            <cj:Label></cj:Label>
-            <cj:Label></cj:Label>
-        </cj:WeekDayHeader>
-        <cj:WeekDayHeader>
-            <cj:Label></cj:Label>
-            <cj:Label></cj:Label>
-        </cj:WeekDayHeader>
-        <cj:WeekDayHeader>
-            <cj:Label></cj:Label>
-            <cj:Label></cj:Label>
-        </cj:WeekDayHeader>
-        <cj:WeekDayHeader>
-            <cj:Label></cj:Label>
-            <cj:Label></cj:Label>
-        </cj:WeekDayHeader>
     </cj:Headers>
     <cj:Scroller>
         <cj:Container>
@@ -61,13 +33,6 @@
                 <cj:Label class="hour-marker">11 PM</cj:Label>
             </cj:LeftHours>
             <cj:WeekDays>
-                <cj:WeekDay/>
-                <cj:WeekDay/>
-                <cj:WeekDay/>
-                <cj:WeekDay/>
-                <cj:WeekDay/>
-                <cj:WeekDay/>
-                <cj:WeekDay/>
             </cj:WeekDays>
             <cj:RightHours>
                 <cj:Label class="hour-marker"></cj:Label>

@@ -71,7 +71,7 @@ cj\:WeekDayHeader {
 }
 
 cj\:WeekDayHeader:last-child {
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99%, rgba(215, 215, 215, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99.5%, rgba(215, 215, 215, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
 }
 
 cj\:WeekDayHeader cj\:Label:first-child {
@@ -155,7 +155,7 @@ cj\:WeekDay {
 }
 
 cj\:WeekDay:last-child {
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99%, rgba(200, 200, 200, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99.5%, rgba(200, 200, 200, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
 }
 
 cj\:WeekDayHeader:nth-child(odd), cj\:WeekDay:nth-child(odd) {

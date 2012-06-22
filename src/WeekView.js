@@ -147,34 +147,109 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
             }
 
             function drawCalendarGrid() {
+//                var $header,
+//                    $day,
+//                // Number of visible days
+//                    visibleDaysCount = this.nonWorkingHidden ? 7 - this.nonWorkingDays.length : 7,
+//                // Width of a day in %
+//                    dayWidth = Math.floor(100 / visibleDaysCount),
+//                // Width of a last day in %
+//                    firstDayMargin = (100 - visibleDaysCount * dayWidth) / 2,
+//
+//                    $daysChildren = this.$days.children(),
+//                    $headersChildren = this.$headers.children(),
+//                    day = this.rangeStartDate,
+//                    now = new Date;
+//
+//                // Clearing today and non-working classes
+//                $daysChildren.removeClass('today non-working');
+//                $headersChildren.removeClass('today non-working');
+//
+//                // Clearing weekDays array
+//                this.weekDays.length = 0;
+//
+//                for (var i = 0; i < 7; i++) {
+//                    $day = $($daysChildren.get(i));
+//                    $header = $($headersChildren.get(i));
+//
+//                    if (this.nonWorkingHidden && this.nonWorkingDays.indexOf(day.getDay()) >= 0) {
+//                        $day.css({display:'none'});
+//                        $header.css({display:'none'});
+//                    } else {
+//                        $day.css({display:'inline-block'});
+//                        $header.css({display:'inline-block'});
+//                    }
+//
+//                    $header.children().get(0).innerText = DateHelper.format(day, "d");
+//                    $header.children().get(1).innerText = DateHelper.format(day, "ddd");
+//
+//                    // Setting today class
+//                    if (day.getYear() == now.getYear() && day.getMonth() == now.getMonth() && day.getDate() == now.getDate()) {
+//                        $day.addClass('today');
+//                        $header.addClass('today');
+//                    }
+//
+//                    // Setting non-working class
+//                    if (this.nonWorkingDays.indexOf(day.getDay()) >= 0) {
+//                        $day.addClass('non-working');
+//                        $header.addClass('non-working');
+//                    }
+//
+//                    // Pushing day date into the weekDays array
+//                    this.weekDays.push(day);
+//
+//                    // Incrementing to next day
+//                    day = DateHelper.addDays(day, 1);
+//                }
+//
+//                // Setting days canvas height, this +1 is additional pixel for bottom border
+//                this.$container.height(this.hourHeight * 24 + 1);
+//
+//                $headersChildren.css('width', dayWidth + '%').first().css('margin-left', firstDayMargin + '%');
+//                $daysChildren.empty().css({
+//                    'background-size':'100% ' + this.hourHeight + 'px',
+//                    height:this.hourHeight * 24,
+//                    width:dayWidth + '%'
+//                }).first().css('margin-left', firstDayMargin + '%');
+
+
                 var $header,
                     $day,
-                    $daysChildren = this.$days.children(),
-                    $headersChildren = this.$headers.children(),
-                    dayWidth = this.nonWorkingHidden ? 100 / (7 - this.nonWorkingDays.length) : 100 / 7,
+                // Number of visible days
+                    visibleDaysCount = this.nonWorkingHidden ? 7 - this.nonWorkingDays.length : 7,
+                // Width of a day in %
+                    dayWidth = Math.floor(100 / visibleDaysCount),
+                // Width of a last day in %
+                    firstDayMargin = (100 - visibleDaysCount * dayWidth) / 2,
+
                     day = this.rangeStartDate,
-                    now = new Date;
+                    now = new Date,
+                    headers = [],
+                    days = [];
 
                 this.weekDays.length = 0;
 
-                // Clearing today and non-working classes
-                $daysChildren.removeClass('today non-working');
-                $headersChildren.removeClass('today non-working');
-
                 for (var i = 0; i < 7; i++) {
-                    $day = $($daysChildren.get(i));
-                    $header = $($headersChildren.get(i));
+                    if (this.nonWorkingHidden && this.nonWorkingDays.indexOf(day.getDay()) >= 0)
+                        continue;
 
-                    if (this.nonWorkingHidden && this.nonWorkingDays.indexOf(day.getDay()) >= 0) {
-                        $day.css({display:'none'});
-                        $header.css({display:'none'});
-                    } else {
-                        $day.css({display:'inline-block'});
-                        $header.css({display:'inline-block'});
+                    // Creating new day column
+                    $header = $('<cj:WeekDayHeader><cj:Label>' + DateHelper.format(day, "d")
+                        + '</cj:Label><cj:Label>' + DateHelper.format(day, "ddd") + '</cj:Label></cj:WeekDayHeader>')
+                        .css('width', dayWidth + '%');
+
+                    // Creating new day column
+                    $day = $('<cj:WeekDay/>').css({
+                        'background-size':'100% ' + this.hourHeight + 'px',
+                        width:dayWidth + '%',
+                        height:this.hourHeight * 24
+                    });
+
+                    // Setting margin for first day of a week
+                    if (i == 0) {
+                        $day.css('margin-left', firstDayMargin + '%');
+                        $header.css('margin-left', firstDayMargin + '%');
                     }
-
-                    $header.children().get(0).innerText = DateHelper.format(day, "d");
-                    $header.children().get(1).innerText = DateHelper.format(day, "ddd");
 
                     // Setting today class
                     if (day.getYear() == now.getYear() && day.getMonth() == now.getMonth() && day.getDate() == now.getDate()) {
@@ -188,6 +263,12 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                         $header.addClass('non-working');
                     }
 
+                    // Adding to local array
+                    headers.push($header[0]);
+
+                    // Adding to local array
+                    days.push($day[0]);
+
                     // Pushing day date into the weekDays array
                     this.weekDays.push(day);
 
@@ -198,12 +279,21 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                 // Setting days canvas height, this +1 is additional pixel for bottom border
                 this.$container.height(this.hourHeight * 24 + 1);
 
-                $headersChildren.css('width', dayWidth + '%');
-                $daysChildren.empty().css({
-                    'background-size':'100% ' + this.hourHeight + 'px',
-                    width:dayWidth + '%',
-                    height:this.hourHeight * 24
-                });
+                // Removing existing headers
+                if (this.$headers.length > 0)
+                    this.$headers.empty();
+
+                if (headers.length > 0)
+                // Appending day column to the canvas
+                    this.$headers.append(headers);
+
+                // Removing existing days
+                if (this.$days.length > 0)
+                    this.$days.empty();
+
+                if (days.length > 0)
+                // Appending day column to the canvas
+                    this.$days.append(days);
             }
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
