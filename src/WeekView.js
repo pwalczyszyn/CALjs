@@ -64,10 +64,22 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
             this.selectedEvent = null;
 
-            // TODO:
-//        this.model.on('add', this.model_addHandler, this);
-//        this.model.on('remove', this.model_removeHandler, this);
-//        this.model.on('change', this.model_changeHandler, this);
+            this.collection.on('add', collection_addHandler.bind(this));
+            this.collection.on('remove', collection_removeHandler.bind(this));
+            this.collection.on('change', collection_changeHandler.bind(this));
+
+            function collection_addHandler(calEvent) {
+                addCalEvent.call(this, calEvent);
+            }
+
+            function collection_removeHandler(calEvent) {
+                removeCalEvent.call(this, calEvent);
+            }
+
+            function collection_changeHandler(calEvent, options) {
+                if (calEvent.hasChanged('StartDateTime') || calEvent.hasChanged('EndDateTime'))
+                    updateCalEvent.call(this, calEvent);
+            }
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // WeekView navigation functions
@@ -147,72 +159,6 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
             }
 
             function drawCalendarGrid() {
-//                var $header,
-//                    $day,
-//                // Number of visible days
-//                    visibleDaysCount = this.nonWorkingHidden ? 7 - this.nonWorkingDays.length : 7,
-//                // Width of a day in %
-//                    dayWidth = Math.floor(100 / visibleDaysCount),
-//                // Width of a last day in %
-//                    firstDayMargin = (100 - visibleDaysCount * dayWidth) / 2,
-//
-//                    $daysChildren = this.$days.children(),
-//                    $headersChildren = this.$headers.children(),
-//                    day = this.rangeStartDate,
-//                    now = new Date;
-//
-//                // Clearing today and non-working classes
-//                $daysChildren.removeClass('today non-working');
-//                $headersChildren.removeClass('today non-working');
-//
-//                // Clearing weekDays array
-//                this.weekDays.length = 0;
-//
-//                for (var i = 0; i < 7; i++) {
-//                    $day = $($daysChildren.get(i));
-//                    $header = $($headersChildren.get(i));
-//
-//                    if (this.nonWorkingHidden && this.nonWorkingDays.indexOf(day.getDay()) >= 0) {
-//                        $day.css({display:'none'});
-//                        $header.css({display:'none'});
-//                    } else {
-//                        $day.css({display:'inline-block'});
-//                        $header.css({display:'inline-block'});
-//                    }
-//
-//                    $header.children().get(0).innerText = DateHelper.format(day, "d");
-//                    $header.children().get(1).innerText = DateHelper.format(day, "ddd");
-//
-//                    // Setting today class
-//                    if (day.getYear() == now.getYear() && day.getMonth() == now.getMonth() && day.getDate() == now.getDate()) {
-//                        $day.addClass('today');
-//                        $header.addClass('today');
-//                    }
-//
-//                    // Setting non-working class
-//                    if (this.nonWorkingDays.indexOf(day.getDay()) >= 0) {
-//                        $day.addClass('non-working');
-//                        $header.addClass('non-working');
-//                    }
-//
-//                    // Pushing day date into the weekDays array
-//                    this.weekDays.push(day);
-//
-//                    // Incrementing to next day
-//                    day = DateHelper.addDays(day, 1);
-//                }
-//
-//                // Setting days canvas height, this +1 is additional pixel for bottom border
-//                this.$container.height(this.hourHeight * 24 + 1);
-//
-//                $headersChildren.css('width', dayWidth + '%').first().css('margin-left', firstDayMargin + '%');
-//                $daysChildren.empty().css({
-//                    'background-size':'100% ' + this.hourHeight + 'px',
-//                    height:this.hourHeight * 24,
-//                    width:dayWidth + '%'
-//                }).first().css('margin-left', firstDayMargin + '%');
-
-
                 var $header,
                     $day,
                 // Number of visible days
