@@ -53,21 +53,21 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 // Creating $calendar DOM
                 this.$calendar = $(CalendarTpl);
                 // Registering $calendar event handlers
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', this.bindHandler(prevBtn_clickHandler, this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-next', this.bindHandler(nextBtn_clickHandler, this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-week-view', this.bindHandler(weekBtn_clickHandler, this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-month-view', this.bindHandler(monthBtn_clickHandler, this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-toggle-non-working', this.bindHandler(toggleBtn_clickHandler, this));
+                this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', prevBtn_clickHandler.bind(this));
+                this.$calendar.on('tbclick', 'cj\\:Button.btn-next', nextBtn_clickHandler.bind(this));
+                this.$calendar.on('tbclick', 'cj\\:Button.btn-week-view', weekBtn_clickHandler.bind(this));
+                this.$calendar.on('tbclick', 'cj\\:Button.btn-month-view', monthBtn_clickHandler.bind(this));
+                this.$calendar.on('tbclick', 'cj\\:Button.btn-toggle-non-working', toggleBtn_clickHandler.bind(this));
 
                 // Creating WeekView as initial current view
-                this.weekView = this.currentView = new WeekView({model:this.model, date:this.date,
+                this.weekView = this.currentView = new WeekView({collection:this.collection, date:this.date,
                     entryTemplate:this.options.weekEntryTemplate});
                 // Adding range changed handler
                 this.weekView.on(Calendar.RANGE_CHANGED, currentView_rangeChangedHandler, this);
                 // Adding context menu handler
                 this.weekView.on(Calendar.CONTEXT_MENU, currentView_contextMenuHandler, this);
                 // Adding mouse or touch down event handler
-                this.weekView.$el.on(this.MOUSE_DOWN_EV, this.bindHandler(container_mouseDownHandler, this));
+                this.weekView.$el.on(this.MOUSE_DOWN_EV, container_mouseDownHandler.bind(this));
 
                 // Appending current view to the DOM
                 this.$calendar.append(this.currentView.el);
@@ -127,7 +127,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                     // Doing lazy initialization of the month view
                     if (!this.monthView) {
-                        this.monthView = new MonthView({model:this.model, date:this.date});
+                        this.monthView = new MonthView({collection:this.collection, date:this.date});
                         this.monthView.on('rangeChanged', this.currentView_rangeChangedHandler, this);
                         this.monthView.on('contextMenu', this.currentView_contextMenuHandler, this);
                         // Registering handler for container gesture events

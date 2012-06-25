@@ -14,7 +14,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
             options.el = WeekViewTpl;
 
             // Initializing model if it's not set
-            if (!options.model) options.model = [];
+            if (!options.collection) options.collection = [];
 
             // Calling parent constructor
             Component.call(this, options);
@@ -308,7 +308,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                 this.entries.length = 0;
 
                 // Adding model entries
-                this.model.forEach(addCalEvent, this);
+                this.collection.forEach(addCalEvent, this);
             }
 
             function addCalEvent(calEvent) {
@@ -582,9 +582,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                     newEndDateTime = new Date(newStartDateTime.getTime() + duration);
 
                     // Updating model with new dates
-                    if (!calEvent.set({StartDateTime:newStartDateTime, EndDateTime:newEndDateTime})) {
-                        throw new Error("Couldn't set calendar event dates!");
-                    }
+                    calEvent.set({StartDateTime:newStartDateTime, EndDateTime:newEndDateTime});
                 }
 
                 // Forcing reflow, for some reason on iOS emulator it was required

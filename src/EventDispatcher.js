@@ -60,12 +60,6 @@ define(function () {
             }
         };
 
-        EventDispatcher.prototype.bindHandler = function bindHandler(handler, thisObject) {
-            return function () {
-                handler.apply(thisObject, Array.prototype.slice.call(arguments));
-            }
-        };
-
         return EventDispatcher;
     }
 );

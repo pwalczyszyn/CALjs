@@ -12,11 +12,11 @@ define(['Component'], function (Component) {
         Component.call(this, options);
 
         if (!this.isTouch) {
-            this.$el.on('click', this.bindHandler(this_clickHandler, this));
-            this.$el.on('contextmenu', this.bindHandler(this_clickHandler, this));
+            this.$el.on('click', this_clickHandler.bind(this));
+            this.$el.on('contextmenu', this_clickHandler.bind(this));
         }
 
-        this.$el.on(this.MOUSE_DOWN_EV, this.bindHandler(this_mouseDownHandler, this));
+        this.$el.on(this.MOUSE_DOWN_EV, this_mouseDownHandler.bind(this));
 
         function this_mouseDownHandler(event) {
             event.preventDefault();

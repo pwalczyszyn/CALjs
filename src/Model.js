@@ -13,16 +13,25 @@ define(['EventDispatcher'],
             EventDispatcher.call(this);
             this.properties = properties ? properties : {};
         };
-        Model.prototype = Object.create(EventDispatcher.prototype);
-
-        Model.prototype.set = function set(name, value) {
-            this.properties[name] = value;
-            this.trigger('change');
-        };
-
-        Model.prototype.get = function get(name) {
-            return this.properties[name];
-        };
+        Model.prototype = Object.create(EventDispatcher.prototype, {
+            set:{
+                value:function set(name, value) {
+                    if (typeof name === 'string') {
+                        this.properties[name] = value;
+                    } else {
+                        for (var key in name) {
+                            this.properties[key] = name[key];
+                        }
+                    }
+                    this.trigger('change');
+                }
+            },
+            get:{
+                value:function get(name) {
+                    return this.properties[name];
+                }
+            }
+        });
 
         return Model;
     });

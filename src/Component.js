@@ -17,8 +17,9 @@ define(['EventDispatcher'], function (EventDispatcher) {
             this.MOUSE_UP_EV = this.isTouch ? 'touchend' : 'mouseup';
 
             this.options = options;
+            this.model = options ? options.model : null;
+            this.collection = options ? options.collection : null;
             this.setElement(options ? options.el : null);
-            this.setModel(options ? options.model : null);
         };
         Component.prototype = Object.create(EventDispatcher.prototype);
 
@@ -30,10 +31,6 @@ define(['EventDispatcher'], function (EventDispatcher) {
 
         Component.prototype.$ = function (selector) {
             return this.$el.find(selector);
-        };
-
-        Component.prototype.setModel = function (model) {
-            this.model = model;
         };
 
         Component.prototype.render = function () {

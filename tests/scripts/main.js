@@ -32,7 +32,7 @@ require(['jquery', 'Calendar', 'Model'], function ($, Calendar, Model) {
         EndDateTime:endDateTime
     })];
 
-    var cal = (new Calendar({el:'#container', model:entries})).render();
+    var cal = (new Calendar({el:'#container', collection:entries})).render();
     cal.activate();
 
 });
