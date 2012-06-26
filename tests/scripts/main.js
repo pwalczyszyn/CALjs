@@ -19,18 +19,20 @@ require.config({
     }
 });
 
-require(['jquery', 'Calendar', 'Model'], function ($, Calendar, Model) {
+require(['jquery', 'Calendar', 'Collection'], function ($, Calendar, Collection) {
 
     var startDateTime = new Date(),
         endDateTime = new Date();
     endDateTime.setHours(startDateTime.getHours() + 2, 0, 0, 0);
 
-    var entries = [new Model({
-        Title:'Test Entry',
-        Color:'#ff0000',
-        StartDateTime:startDateTime,
-        EndDateTime:endDateTime
-    })];
+    var entries = new Collection([
+        {
+            Title:'Test Entry',
+            Color:'#ff0000',
+            StartDateTime:startDateTime,
+            EndDateTime:endDateTime
+        }
+    ]);
 
     var cal = (new Calendar({el:'#container', collection:entries})).render();
     cal.activate();

@@ -76,7 +76,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                 removeCalEvent.call(this, calEvent);
             }
 
-            function collection_changeHandler(calEvent, options) {
+            function collection_changeHandler(calEvent) {
                 if (calEvent.hasChanged('StartDateTime') || calEvent.hasChanged('EndDateTime'))
                     updateCalEvent.call(this, calEvent);
             }
@@ -673,16 +673,9 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                     modelUpdate = {StartDateTime:snappedTime};
                 }
 
-                if (entry.model.set(modelUpdate, {silent:true})) {
-
-                    entry.model.change({calChange:true});
-
-                    entry.measure();
-                    entry.$el.css({top:entry.entryTop + 'px', bottom:entry.entryBottom + 'px'});
-
-                } else {
-                    throw new Error('Error updating CalEvent start or end date!');
-                }
+                entry.measure();
+                entry.$el.css({top:entry.entryTop + 'px', bottom:entry.entryBottom + 'px'});
+                entry.model.set(modelUpdate);
 
                 clearTimeChangeMarkers.call(this);
             }
