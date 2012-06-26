@@ -11,6 +11,14 @@ define(function () {
     var DateHelper = function () {
     }
 
+    DateHelper.SEC_MS = 1000;
+
+    DateHelper.MINUTE_MS = 60 * DateHelper.SEC_MS;
+
+    DateHelper.HOUR_MS = 60 * DateHelper.MINUTE_MS;
+
+    DateHelper.DAY_MS = 24 * DateHelper.HOUR_MS;
+
     DateHelper.toISO8601 = function (date) {
         var year = date.getUTCFullYear();
         var month = date.getUTCMonth() + 1;
