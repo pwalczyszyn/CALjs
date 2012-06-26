@@ -6,8 +6,7 @@
  * Time: 12:53 PM
  */
 
-define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/DateHelper',
-        'utils/TouchButtons'],
+define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/DateHelper', 'utils/TouchButtons'],
     function (Component, WeekView, MonthView, CalendarTpl, DateHelper) {
 
         var Calendar = function (options) {
@@ -44,234 +43,262 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
              */
             this.date = options && options.date ? options.date : new Date;
 
+            this.windowHeight = null;
+        };
+
+        Calendar.RANGE_CHANGED = 'rangeChanged';
+
+        Calendar.CONTEXT_MENU = 'contextMenu';
+
+        Calendar.prototype = Object.create(Component.prototype, {
             /**
              * Overriding render function from Component type.
              *
              * @return {Calendar}
              */
-            this.render = function render() {
-                // Creating $calendar DOM
-                this.$calendar = $(CalendarTpl);
-                // Registering $calendar event handlers
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', prevBtn_clickHandler.bind(this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-next', nextBtn_clickHandler.bind(this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-week-view', weekBtn_clickHandler.bind(this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-month-view', monthBtn_clickHandler.bind(this));
-                this.$calendar.on('tbclick', 'cj\\:Button.btn-toggle-non-working', toggleBtn_clickHandler.bind(this));
+            render:{
+                value:function render() {
+                    // Creating $calendar DOM
+                    this.$calendar = $(CalendarTpl);
+                    // Registering $calendar event handlers
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', this._prevBtn_clickHandler.bind(this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-next', this._nextBtn_clickHandler.bind(this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-week-view', this._weekBtn_clickHandler.bind(this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-month-view', this._monthBtn_clickHandler.bind(this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-toggle-non-working', this._toggleBtn_clickHandler.bind(this));
 
-                // Creating WeekView as initial current view
-                this.weekView = this.currentView = new WeekView({collection:this.collection, date:this.date,
-                    entryTemplate:this.options.weekEntryTemplate});
-                // Adding range changed handler
-                this.weekView.on(Calendar.RANGE_CHANGED, currentView_rangeChangedHandler, this);
-                // Adding context menu handler
-                this.weekView.on(Calendar.CONTEXT_MENU, currentView_contextMenuHandler, this);
-                // Adding mouse or touch down event handler
-                this.weekView.$el.on(this.MOUSE_DOWN_EV, container_mouseDownHandler.bind(this));
+                    // Creating WeekView as initial current view
+                    this.weekView = this.currentView = new WeekView({
+                        collection:this.collection,
+                        date:this.date,
+                        entryTemplate:this.options.weekEntryTemplate
+                    });
+                    // Adding range changed handler
+                    this.weekView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
+                    // Adding context menu handler
+                    this.weekView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
+                    // Adding mouse or touch down event handler
+                    this.weekView.$el.on(this.MOUSE_DOWN_EV, this._container_mouseDownHandler.bind(this));
 
-                // Appending current view to the DOM
-                this.$calendar.append(this.currentView.el);
-                // Rendering current view
-                this.currentView.render();
-
-                // Updating calendar period label
-                updateCurrentPeriodLabel.call(this);
-
-                // Adding whole calendar to the DOM
-                this.$el.html(this.$calendar);
-
-                return this;
-            };
-
-            var windowHeight = null;
-
-            function resize(event) {
-                var that = event.data.context;
-                if (that.windowHeight != window.innerHeight)
-                    that.currentView.updateView.call(that.currentView);
-
-                that.windowHeight = window.innerHeight;
-            }
-
-            this.activate = function activate() {
-                this.windowHeight = window.innerHeight;
-                $(window).on(this.RESIZE_EV, {context:this}, this.resize);
-                this.currentView.updateView();
-            }
-
-            this.deactivate = function deactivate() {
-                $(window).off(this.RESIZE_EV, this.resize);
-                this.currentView.deactivateView();
-            }
-
-            function weekBtn_clickHandler() {
-                if (this.currentView != this.weekView) {
-
-                    // Detaching existing view
-                    this.currentView.$el.detach();
-
-                    // Changing current view reference
-                    this.currentView = this.weekView;
                     // Appending current view to the DOM
-                    this.$el.append(this.currentView.el);
-                    // Updating date to display in current view
-                    this.currentView.showDate(this.date);
+                    this.$calendar.append(this.currentView.el);
+                    // Rendering current view
+                    this.currentView.render();
 
-                    // Dispatching viewChanged event
-                    this.trigger('viewChanged', {viewName:'WeekView'});
+                    // Updating calendar period label
+                    this._updateCurrentPeriodLabel();
+
+                    // Adding whole calendar to the DOM
+                    this.$el.html(this.$calendar);
+
+                    return this;
                 }
-            }
+            },
 
-            function monthBtn_clickHandler() {
-                if (this.currentView != this.monthView) {
+            _resize:{
+                value:function _resize(event) {
+                    var that = event.data.context;
+                    if (that.windowHeight != window.innerHeight)
+                        that.currentView.updateView.call(that.currentView);
 
-                    // Doing lazy initialization of the month view
-                    if (!this.monthView) {
-                        this.monthView = new MonthView({collection:this.collection, date:this.date});
-                        this.monthView.on('rangeChanged', this.currentView_rangeChangedHandler, this);
-                        this.monthView.on('contextMenu', this.currentView_contextMenuHandler, this);
-                        // Registering handler for container gesture events
-                        this.monthView.$el.on(this.MOUSE_DOWN_EV, {context:this}, this.container_mouseDownHandler);
-                        this.monthView.render();
+                    that.windowHeight = window.innerHeight;
+                }
+            },
+
+            activate:{
+                value:function activate() {
+                    this.windowHeight = window.innerHeight;
+                    $(window).on(this.RESIZE_EV, {context:this}, this._resize);
+                    this.currentView.updateView();
+                }
+            },
+
+            deactivate:{
+                value:function deactivate() {
+                    $(window).off(this.RESIZE_EV, this._resize);
+                    this.currentView.deactivateView();
+                }
+            },
+
+            _weekBtn_clickHandler:{
+                value:function _weekBtn_clickHandler() {
+                    if (this.currentView != this.weekView) {
+
+                        // Detaching existing view
+                        this.currentView.$el.detach();
+
+                        // Changing current view reference
+                        this.currentView = this.weekView;
+                        // Appending current view to the DOM
+                        this.$el.append(this.currentView.el);
+                        // Updating date to display in current view
+                        this.currentView.showDate(this.date);
+
+                        // Dispatching viewChanged event
+                        this.trigger('viewChanged', {viewName:'WeekView'});
                     }
-
-                    // Detaching existing view
-                    this.currentView.$el.detach();
-
-                    // Changing current view reference
-                    this.currentView = this.monthView;
-                    // Appending current view to the DOM
-                    this.$el.append(this.currentView.el);
-                    // Updating date to display in current view
-                    this.currentView.showDate(this.date);
-
-                    // Dispatching viewChanged event
-                    this.trigger('viewChanged', {viewName:'MonthView'});
                 }
-            }
+            },
 
-            function prevBtn_clickHandler() {
-                this.currentView.prev();
-            }
+            _monthBtn_clickHandler:{
+                value:function _monthBtn_clickHandler() {
+                    if (this.currentView != this.monthView) {
 
-            function nextBtn_clickHandler() {
-                this.currentView.next();
-            }
+                        // Doing lazy initialization of the month view
+                        if (!this.monthView) {
+                            this.monthView = new MonthView({collection:this.collection, date:this.date});
+                            this.monthView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
+                            this.monthView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
+                            // Registering handler for container gesture events
+                            this.monthView.$el.on(this.MOUSE_DOWN_EV, {context:this}, this._container_mouseDownHandler);
+                            this.monthView.render();
+                        }
+
+                        // Detaching existing view
+                        this.currentView.$el.detach();
+
+                        // Changing current view reference
+                        this.currentView = this.monthView;
+                        // Appending current view to the DOM
+                        this.$el.append(this.currentView.el);
+                        // Updating date to display in current view
+                        this.currentView.showDate(this.date);
+
+                        // Dispatching viewChanged event
+                        this.trigger('viewChanged', {viewName:'MonthView'});
+                    }
+                }
+            },
+
+            _prevBtn_clickHandler:{
+                value:function _prevBtn_clickHandler() {
+                    this.currentView.prev();
+                }
+            },
+
+            _nextBtn_clickHandler:{
+                value:function _nextBtn_clickHandler() {
+                    this.currentView.next();
+                }
+            },
 
             /**
              * Updates RangeLabel content based on currentView.date value.
              *
              * @private
              */
-            function updateCurrentPeriodLabel() {
-                var label;
-                if (this.currentView instanceof WeekView) {
-                    var weekStart = DateHelper.firstDayOfWeek(this.currentView.date);
-                    var weekEnd = DateHelper.lastDayOfWeek(this.currentView.date);
+            _updateCurrentPeriodLabel:{
+                value:function _updateCurrentPeriodLabel() {
+                    var label;
+                    if (this.currentView instanceof WeekView) {
+                        var weekStart = DateHelper.firstDayOfWeek(this.currentView.date);
+                        var weekEnd = DateHelper.lastDayOfWeek(this.currentView.date);
 
-                    if (weekStart.getMonth() == weekEnd.getMonth())
-                        label = DateHelper.format(weekStart, 'mmmm yyyy');
-                    else
-                        label = DateHelper.format(weekStart, 'mmmm') + ' - '
-                            + DateHelper.format(weekEnd, 'mmmm yyyy');
+                        if (weekStart.getMonth() == weekEnd.getMonth())
+                            label = DateHelper.format(weekStart, 'mmmm yyyy');
+                        else
+                            label = DateHelper.format(weekStart, 'mmmm') + ' - '
+                                + DateHelper.format(weekEnd, 'mmmm yyyy');
 
-                } else {
-                    label = DateHelper.format(this.currentView.date, 'mmmm yyyy');
+                    } else {
+                        label = DateHelper.format(this.currentView.date, 'mmmm yyyy');
+                    }
+
+                    this.$calendar.find('cj\\:RangeLabel').html(label);
                 }
-
-                this.$calendar.find('cj\\:RangeLabel').html(label);
-            }
+            },
 
             /**
              * Displays popup message when dates range is changed.
              *
              * @private
              */
-            function showRangeChangeMessage() {
-                // Setting displayed message text
-                var messageText = DateHelper.format(this.currentView.rangeStartDate, "mmm d") + ' - '
-                    + DateHelper.format(this.currentView.rangeEndDate, "mmm d");
+            _showRangeChangeMessage:{
+                value:function _showRangeChangeMessage() {
+                    // Setting displayed message text
+                    var messageText = DateHelper.format(this.currentView.rangeStartDate, "mmm d") + ' - '
+                        + DateHelper.format(this.currentView.rangeEndDate, "mmm d");
 
-                // Creating message div
-                var message = $('<cj:RangeChangeMessage/>').html(messageText).appendTo(this.$calendar);
+                    // Creating message div
+                    var message = $('<cj:RangeChangeMessage/>').html(messageText).appendTo(this.$calendar);
 
-                // Positioning message
-                var messagePosition = {
-                    top:this.$calendar.height() / 2 - (message.height() / 2),
-                    left:this.$calendar.width() / 2 - (message.width() / 2)
-                };
+                    // Positioning message
+                    var messagePosition = {
+                        top:this.$calendar.height() / 2 - (message.height() / 2),
+                        left:this.$calendar.width() / 2 - (message.width() / 2)
+                    };
 
-                // Displaying message with fadeIn/fadeOut effects
-                message.css(messagePosition)
-                    .fadeIn(300, function () {
-                        $(this)
-                            .delay(500)
-                            .fadeOut(300, function () {
-                                $(this).remove();
-                            });
-                    });
-            }
+                    // Displaying message with fadeIn/fadeOut effects
+                    message.css(messagePosition)
+                        .fadeIn(300, function () {
+                            $(this)
+                                .delay(500)
+                                .fadeOut(300, function () {
+                                    $(this).remove();
+                                });
+                        });
+                }
+            },
 
-            function toggleBtn_clickHandler() {
-                this.currentView.toggleNonWorking();
-            }
+            _toggleBtn_clickHandler:{
+                value:function _toggleBtn_clickHandler() {
+                    this.currentView.toggleNonWorking();
+                }
+            },
 
-            function currentView_rangeChangedHandler() {
-                this.date = this.currentView.date;
-                showRangeChangeMessage.call(this);
-                updateCurrentPeriodLabel.call(this);
-            }
+            _currentView_rangeChangedHandler:{
+                value:function _currentView_rangeChangedHandler() {
+                    this.date = this.currentView.date;
+                    this._showRangeChangeMessage();
+                    this._updateCurrentPeriodLabel();
+                }
+            },
 
-            function currentView_contextMenuHandler(entry) {
-                this.trigger('contextMenu', entry);
-            }
-
-            /**
-             * Mouse or touch down handler.
-             *
-             * @private
-             * @param event
-             */
-            function container_mouseDownHandler(event) {
-                alert('mouse down handle');
-            }
+            _currentView_contextMenuHandler:{
+                value:function _currentView_contextMenuHandler(entry) {
+                    this.trigger(Calendar.CONTEXT_MENU, entry);
+                }
+            },
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Swipe gesture events and context menu functions
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            function currentView_contextMenuHandler(entry) {
-                // Bubbling up
-                this.trigger('contextMenu', entry);
-            }
+            _currentView_contextMenuHandler:{
+                value:function _currentView_contextMenuHandler(entry) {
+                    // Bubbling up
+                    this.trigger(Calendar.CONTEXT_MENU, entry);
+                }},
 
-            function container_mouseDownHandler(event) {
-                var that = this;
+            _container_mouseDownHandler:{
+                value:function _container_mouseDownHandler(event) {
+                    var that = this;
 
-                // Getting touch point with touch coordinates, this depends on the runtime,
-                // on devices it's part of touches array
-                var touchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
-                    touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
+                    // Getting touch point with touch coordinates, this depends on the runtime,
+                    // on devices it's part of touches array
+                    var touchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
+                        touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
 
-                // Setting touch point X and Y
-                container_mouseDownHandler.touchPoint = {
-                    x:touchPoint.pageX,
-                    y:touchPoint.pageY
-                };
+                    // Setting touch point X and Y
+                    this._container_mouseDownHandler.touchPoint = {
+                        x:touchPoint.pageX,
+                        y:touchPoint.pageY
+                    };
 
-                if (touchesCount == 1) {
-                    // For desktop devices document needs to be a move and up target
-                    var moveTarget = $(document);
+                    if (touchesCount == 1) {
+                        // For desktop devices document needs to be a move and up target
+                        var moveTarget = $(document);
 
-                    // Adding move and up listeners
-                    moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, container_mouseMoveHandler);
-                    moveTarget.on(that.MOUSE_UP_EV, {context:that}, container_mouseUpHandler);
+                        // Adding move and up listeners
+                        moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, this._container_mouseMoveHandler);
+                        moveTarget.on(that.MOUSE_UP_EV, {context:that}, this._container_mouseUpHandler);
+                    }
                 }
-            }
+            },
 
-            function container_mouseMoveHandler(event) {
+            _container_mouseMoveHandler:{value:function _container_mouseMoveHandler(event) {
                 var that = event.data.context,
-                    downTouchPoint = container_mouseDownHandler.touchPoint;
+                    downTouchPoint = this._container_mouseDownHandler.touchPoint;
 
                 // Getting touch point with touch coordinates, this depends on the runtime,
                 // on devices it part of touches array
@@ -287,46 +314,45 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                     // For desktop devices document needs to be a move and up target
                     var moveTarget = $(document);
-                    moveTarget.off(that.MOUSE_UP_EV, container_mouseUpHandler);
-                    moveTarget.off(that.MOUSE_MOVE_EV, container_mouseMoveHandler);
+                    moveTarget.off(that.MOUSE_UP_EV, this._container_mouseUpHandler);
+                    moveTarget.off(that.MOUSE_MOVE_EV, this._container_mouseMoveHandler);
 
                     if (xDelta > 0)
                         that.currentView.prev();
                     else if (xDelta < 0)
                         that.currentView.next();
                 }
-            }
+            }},
 
-            function container_mouseUpHandler(event) {
-                var that = event.data.context;
+            _container_mouseUpHandler:{
+                value:function _container_mouseUpHandler(event) {
+                    var that = event.data.context;
 
-                // For desktop devices document needs to be a move and up target
-                var moveTarget = $(document);
-                moveTarget.off(that.MOUSE_UP_EV, container_mouseUpHandler);
-                moveTarget.off(that.MOUSE_MOVE_EV, container_mouseMoveHandler);
+                    // For desktop devices document needs to be a move and up target
+                    var moveTarget = $(document);
+                    moveTarget.off(that.MOUSE_UP_EV, this._container_mouseUpHandler);
+                    moveTarget.off(that.MOUSE_MOVE_EV, this._container_mouseMoveHandler);
 
-                // Getting touch point with touch coordinates, this depends on the runtime,
-                // on devices it's part of changedTouches array for TouchEnd event
-                var upTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.changedTouches[0] : event,
-                    downTouchPoint = container_mouseDownHandler.touchPoint;
+                    // Getting touch point with touch coordinates, this depends on the runtime,
+                    // on devices it's part of changedTouches array for TouchEnd event
+                    var upTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.changedTouches[0] : event,
+                        downTouchPoint = this._container_mouseDownHandler.touchPoint;
 
-                // Detecting if this is container click
-                if (Math.abs(upTouchPoint.pageX - downTouchPoint.x) < 5
-                    && Math.abs(upTouchPoint.pageY - downTouchPoint.y) < 5) {
+                    // Detecting if this is container click
+                    if (Math.abs(upTouchPoint.pageX - downTouchPoint.x) < 5
+                        && Math.abs(upTouchPoint.pageY - downTouchPoint.y) < 5) {
 
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
 
-                    that.currentView.selectEventEntries(null);
+                        that.currentView.selectEventEntries(null);
 
-                    // HACK: Forcing reflow, on devices for some reason display doesn'up update
-                    that.currentView.$el.width();
+                        // HACK: Forcing reflow, on devices for some reason display doesn'up update
+                        that.currentView.$el.width();
+                    }
                 }
             }
-        };
-        Calendar.RANGE_CHANGED = 'rangeChanged';
-        Calendar.CONTEXT_MENU = 'contextMenu';
-        Calendar.prototype = Object.create(Component.prototype);
+        });
 
         return Calendar;
     });

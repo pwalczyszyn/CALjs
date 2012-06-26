@@ -7,16 +7,15 @@
  */
 
 define(['Component'], function (Component) {
-
     var MonthView = function (options) {
         Component.call(this, options);
     };
-    MonthView.prototype = Object.create(Component.prototype);
-
-    MonthView.prototype.render = function () {
-
-        return this;
-    };
-
+    MonthView.prototype = Object.create(Component.prototype, {
+        render:{
+            value:function render() {
+                return this;
+            }
+        }
+    });
     return MonthView;
 });
