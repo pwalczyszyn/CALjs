@@ -254,12 +254,6 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 }
             },
 
-            _currentView_contextMenuHandler:{
-                value:function _currentView_contextMenuHandler(entry) {
-                    this.trigger(Calendar.CONTEXT_MENU, entry);
-                }
-            },
-
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Swipe gesture events and context menu functions
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -296,33 +290,35 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 }
             },
 
-            _container_mouseMoveHandler:{value:function _container_mouseMoveHandler(event) {
-                var that = event.data.context,
-                    downTouchPoint = this._container_mouseDownHandler.touchPoint;
+            _container_mouseMoveHandler:{
+                value:function _container_mouseMoveHandler(event) {
+                    var that = event.data.context,
+                        downTouchPoint = that._container_mouseDownHandler.touchPoint;
 
-                // Getting touch point with touch coordinates, this depends on the runtime,
-                // on devices it part of touches array
-                var moveTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
-                    touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
+                    // Getting touch point with touch coordinates, this depends on the runtime,
+                    // on devices it part of touches array
+                    var moveTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
+                        touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
 
-                var xDelta = moveTouchPoint.pageX - downTouchPoint.x,
-                    yDelta = moveTouchPoint.pageY - downTouchPoint.y;
+                    var xDelta = moveTouchPoint.pageX - downTouchPoint.x,
+                        yDelta = moveTouchPoint.pageY - downTouchPoint.y;
 
-                if (Math.abs(xDelta) >= 60 && Math.abs(yDelta) < 10 && touchesCount == 1) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+                    if (Math.abs(xDelta) >= 60 && Math.abs(yDelta) < 10 && touchesCount == 1) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
 
-                    // For desktop devices document needs to be a move and up target
-                    var moveTarget = $(document);
-                    moveTarget.off(that.MOUSE_UP_EV, this._container_mouseUpHandler);
-                    moveTarget.off(that.MOUSE_MOVE_EV, this._container_mouseMoveHandler);
+                        // For desktop devices document needs to be a move and up target
+                        var moveTarget = $(document);
+                        moveTarget.off(that.MOUSE_UP_EV, that._container_mouseUpHandler);
+                        moveTarget.off(that.MOUSE_MOVE_EV, that._container_mouseMoveHandler);
 
-                    if (xDelta > 0)
-                        that.currentView.prev();
-                    else if (xDelta < 0)
-                        that.currentView.next();
+                        if (xDelta > 0)
+                            that.currentView.prev();
+                        else if (xDelta < 0)
+                            that.currentView.next();
+                    }
                 }
-            }},
+            },
 
             _container_mouseUpHandler:{
                 value:function _container_mouseUpHandler(event) {
@@ -330,13 +326,13 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                     // For desktop devices document needs to be a move and up target
                     var moveTarget = $(document);
-                    moveTarget.off(that.MOUSE_UP_EV, this._container_mouseUpHandler);
-                    moveTarget.off(that.MOUSE_MOVE_EV, this._container_mouseMoveHandler);
+                    moveTarget.off(that.MOUSE_UP_EV, that._container_mouseUpHandler);
+                    moveTarget.off(that.MOUSE_MOVE_EV, that._container_mouseMoveHandler);
 
                     // Getting touch point with touch coordinates, this depends on the runtime,
                     // on devices it's part of changedTouches array for TouchEnd event
                     var upTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.changedTouches[0] : event,
-                        downTouchPoint = this._container_mouseDownHandler.touchPoint;
+                        downTouchPoint = that._container_mouseDownHandler.touchPoint;
 
                     // Detecting if this is container click
                     if (Math.abs(upTouchPoint.pageX - downTouchPoint.x) < 5

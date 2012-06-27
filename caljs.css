@@ -58,6 +58,10 @@ cj\:Headers {
     height: 47px;
 }
 
+cj\:Headers.desktop {
+    right: 51px; /* extra space for the scroller */
+}
+
 cj\:WeekDayHeader {
     display: inline-block;
     position: relative;
@@ -92,10 +96,33 @@ cj\:WeekDayHeader.today {
 cj\:Scroller {
     display: block;
     position: absolute;
-    overflow: scroll;
     top: 50px;
     width: 100%;
     bottom: 0;
+}
+
+cj\:Scroller::-webkit-scrollbar {
+    width: 3px;
+}
+
+cj\:Scroller::-webkit-scrollbar:horizontal {
+    display: none;
+}
+
+cj\:Scroller::-webkit-scrollbar-track {
+    background: #d3d3d3;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}
+
+cj\:Scroller::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    background: #808080;
+}
+
+cj\:Scroller::-webkit-scrollbar-thumb:window-inactive {
+    background: #808080;
 }
 
 cj\:Container {
@@ -125,15 +152,14 @@ cj\:RightHours {
 cj\:LeftHours > cj\:Label, cj\:RightHours > cj\:Label {
     display: block;
     position: relative;
-    text-align: center;
+    width: 40px;
+    text-align: right;
     height: 4.16666666666667%;
 }
 
 cj\:Label.minutes-marker {
     position: absolute;
     font-weight: bold;
-    text-align: right;
-    width: 100%;
     margin-top: -0.5em;
 }
 

@@ -6,10 +6,11 @@
  * Time: 1:06 PM
  */
 
-define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip'],
-    function (Component, WeekEntry, DateHelper, WeekViewTpl) {
+define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip', 'require'],
+    function (Component, WeekEntry, DateHelper, WeekViewTpl, require) {
 
         var WeekView = function (options) {
+
             // Setting WeekView template as a root element
             options.el = WeekViewTpl;
 
@@ -23,6 +24,22 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
             this.$scroller = this.$('cj\\:Scroller');
 
+            if (this.isTouch) {
+                if (typeof iScroll !== 'undefined') {
+                    this.scroller = new iScroll(this.$scroller[0], {hScrollbar:false});
+                } else {
+                    var that = this;
+                    require(['iScroll'], function (iScroll) {
+                        that.scroller = new iScroll(that.$scroller[0], {hScrollbar:false});
+                    }, function (err) {
+                        alert('iScroll not found, please provide it to scroll CalJS week view on devices!');
+                    });
+                }
+            } else {
+                this.$headers.addClass('desktop');
+                this.$scroller.css('overflow-y', 'scroll');
+            }
+
             this.$container = this.$('cj\\:Container');
 
             this.$leftHours = this.$('cj\\:LeftHours');
@@ -33,11 +50,8 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
 
             this.hourHeight = 0;
 
-            this.scroller = null;
+            this.currentScrollHour = 7.75;
 
-            this.currentScrollHour = -7.75;
-
-            // Setting current WeekView date
             this.date = options && options.date ? options.date : new Date;
 
             this.nonWorkingHidden = options && options.nonWorkingHidden ? options.nonWorkingHidden : false;
@@ -140,11 +154,14 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                     // Adding weeks entries
                     this._addCalEvents();
 
-                    //            // Refreshing scroller
-                    //            this.scroller.enable();
-                    //            this.scroller.refresh();
-                    //            this.scroller.scrollTo(0, this.currentScrollHour * this.hourHeight, 200);
-                    this.$scroller.scrollTop(Math.abs(this.currentScrollHour) * this.hourHeight);
+                    // Refreshing scroller
+                    if (this.scroller) {
+                        this.scroller.enable();
+                        this.scroller.refresh();
+                        this.scroller.scrollTo(0, -(this.currentScrollHour * this.hourHeight), 200);
+                    } else {
+                        this.$scroller.scrollTop(this.currentScrollHour * this.hourHeight);
+                    }
                 }
             },
 
@@ -160,6 +177,18 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip']
                     }, this);
 
                     this.selectedEvent = calEvent;
+                }
+            },
+
+            /**
+             * Deactivates view
+             */
+            deactivateView:{
+                value:function () {
+                    // Measuring current scroll hour before deactivation
+                    this.currentScrollHour = this.$container.position().top / this.hourHeight;
+                    // Disabling scroller to preserve resources
+                    if (this.scroller) this.scroller.disable();
                 }
             },
 

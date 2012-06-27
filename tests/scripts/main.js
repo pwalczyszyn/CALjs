@@ -15,7 +15,13 @@ require.config({
     baseUrl:'../src',
     paths:{
         jquery:'../tests/scripts/jquery-1.7.2',
-        text:'../tests/scripts/text'
+        text:'../tests/scripts/text',
+        iScroll:'../tests/scripts/iscroll-lite'
+    },
+    shim:{
+        iScroll:{
+            exports:'iScroll'
+        }
     }
 });
 
