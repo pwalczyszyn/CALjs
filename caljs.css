@@ -301,3 +301,19 @@ cj\:Button.btn-next, cj\:Button.btn-next.up {
 cj\:Button.btn-next.down, cj\:Button.btn-next.active {
     background-image: url("images/caljs/btn-next-on.png");
 }
+
+cj\:Button.btn-week-view, cj\:Button.btn-week-view.up {
+    background-image: url("images/caljs/btn-week.png");
+}
+
+cj\:Button.btn-week-view.down, cj\:Button.btn-week-view.active {
+    background-image: url("images/caljs/btn-week-on.png");
+}
+
+cj\:Button.btn-month-view, cj\:Button.btn-month-view.up {
+    background-image: url("images/caljs/btn-month.png");
+}
+
+cj\:Button.btn-month-view.down, cj\:Button.btn-month-view.active {
+    background-image: url("images/caljs/btn-month-on.png");
+}

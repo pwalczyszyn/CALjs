@@ -22,7 +22,7 @@ define(function () {
             // Detecting if this is left mouse button
             if ((isTouch && event.originalEvent.touches.length == 1) || (!isTouch && event.which == 1)) {
 
-                $el.removeClass('up down').addClass('active');
+                $el.addClass('active');
 
                 $(document).on(MOUSE_UP, function (event) {
                     event.preventDefault();
@@ -34,7 +34,7 @@ define(function () {
                     $el.removeClass('active');
 
                     var groupName = $el.attr('name'),
-                        groupButtons = groupName ? $("jc\\:Button[name='" + groupName + "']") : null;
+                        groupButtons = groupName ? $("cj\\:Button[name='" + groupName + "']") : null;
 
                     if (groupButtons) {
 

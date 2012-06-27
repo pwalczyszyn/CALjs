@@ -7,6 +7,8 @@
 
         <cj:NavigationBarRight>
             <cj:Button class="btn-toggle-non-working txt up">Toggle Sat/Sun</cj:Button>
+            <cj:Button class="btn-week-view down" name="cal-views"/>
+            <cj:Button class="btn-month-view up" name="cal-views"/>
             <cj:Button class="btn-next up"/>
         </cj:NavigationBarRight>
     </cj:NavigationBar>

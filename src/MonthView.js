@@ -8,7 +8,9 @@
 
 define(['Component'], function (Component) {
     var MonthView = function (options) {
+        options.el = '<cj:WeekView/>';
         Component.call(this, options);
+
     };
     MonthView.prototype = Object.create(Component.prototype, {
         render:{
