@@ -52,11 +52,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
         Calendar.CONTEXT_MENU = 'contextMenu';
 
         Calendar.prototype = Object.create(Component.prototype, {
-            /**
-             * Overriding render function from Component type.
-             *
-             * @return {Calendar}
-             */
+
             render:{
                 value:function render() {
                     // Creating $calendar DOM
@@ -116,9 +112,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
             _resize:{
                 value:function _resize(event) {
                     var that = event.data.context;
-                    if (that.windowHeight != window.innerHeight)
-                        that.currentView.updateView.call(that.currentView);
-
+                    if (that.windowHeight != window.innerHeight) that.currentView.updateView.call(that.currentView);
                     that.windowHeight = window.innerHeight;
                 }
             },
@@ -344,7 +338,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                         that.currentView.selectEventEntries(null);
 
-                        // HACK: Forcing reflow, on devices for some reason display doesn'up update
+                        // HACK: Forcing reflow, on devices for some reason display doesn't update
                         that.currentView.$el.width();
                     }
                 }

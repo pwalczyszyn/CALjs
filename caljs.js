@@ -525,12 +525,12 @@ define('EntryBase',['Component'], function (Component) {
                     moveTarget = $(document);
 
                 // Clearing longPress flag
-                this._mouseDownHandler.longPress = undefined;
+                this._mouseDownHandler.longPress = null;
 
                 // Setting new timer to check long press event
                 this._mouseDownHandler.longPressTimer = setTimeout(function () {
 
-                    if (that._mouseDownHandler.longPress == undefined) {
+                    if (that._mouseDownHandler.longPress == null) {
 
                         // Removing move and up listeners
                         moveTarget.off(that.MOUSE_MOVE_EV, that._mouseMoveHandler);
@@ -2867,11 +2867,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
         Calendar.CONTEXT_MENU = 'contextMenu';
 
         Calendar.prototype = Object.create(Component.prototype, {
-            /**
-             * Overriding render function from Component type.
-             *
-             * @return {Calendar}
-             */
+
             render:{
                 value:function render() {
                     // Creating $calendar DOM
@@ -2931,9 +2927,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
             _resize:{
                 value:function _resize(event) {
                     var that = event.data.context;
-                    if (that.windowHeight != window.innerHeight)
-                        that.currentView.updateView.call(that.currentView);
-
+                    if (that.windowHeight != window.innerHeight) that.currentView.updateView.call(that.currentView);
                     that.windowHeight = window.innerHeight;
                 }
             },
@@ -3159,7 +3153,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
 
                         that.currentView.selectEventEntries(null);
 
-                        // HACK: Forcing reflow, on devices for some reason display doesn'up update
+                        // HACK: Forcing reflow, on devices for some reason display doesn't update
                         that.currentView.$el.width();
                     }
                 }
@@ -3168,7 +3162,125 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
 
         return Calendar;
     });
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 6/6/12
+ * Time: 4:22 PM
+ */
+
+define('Model',['EventDispatcher'],
+    function (EventDispatcher) {
+
+        var Model = function (properties) {
+            EventDispatcher.call(this);
+            this.changes = [];
+            this.properties = properties ? properties : {};
+        };
+        Model.prototype = Object.create(EventDispatcher.prototype, {
+            set:{
+                value:function set(name, value) {
+                    this.changes.length = 0;
+                    if (typeof name === 'string') {
+                        this.properties[name] = value;
+                        this.changes.push(name);
+                    } else {
+                        for (var key in name) {
+                            this.properties[key] = name[key];
+                            this.changes.push(key);
+                        }
+                    }
+                    this.trigger('change', this);
+                }
+            },
+            get:{
+                value:function get(name) {
+                    return this.properties[name];
+                }
+            },
+            hasChanged:{
+                value:function hasChanged(attribute) {
+                    return this.changes.indexOf(attribute) >= 0;
+                }
+            }
+
+        });
+
+        return Model;
+    });
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 6/25/12
+ * Time: 3:14 PM
+ */
+
+define('Collection',['EventDispatcher', 'Model'],
+    function (EventDispatcher, Model) {
+
+        var Collection = function (arr) {
+            EventDispatcher.call(this);
+
+            this.arr = [];
+
+            if (arr) {
+                arr.forEach(function (item) {
+                    this._add(item, true);
+                }, this);
+            }
+        };
+        Collection.prototype = Object.create(EventDispatcher.prototype, {
+            /**
+             * Private functions
+             */
+            _add:{
+                value:function (val, silent) {
+                    var item = val instanceof Model ? val : new Model(val);
+                    item.on('change', this._item_changeHandler, this);
+
+                    this.arr.push(item);
+                    if (!silent) this.trigger('add', item);
+                }
+            },
+            _item_changeHandler:{
+                value:function (item) {
+                    this.trigger('change', item);
+                }
+            },
+            /**
+             * Public functions
+             */
+            forEach:{
+                value:function forEach(iterator, thisObject) {
+                    this.arr.forEach(iterator, thisObject);
+                }
+            },
+            add:{
+                value:function add(models) {
+                    if (Array.isArray(models)) {
+                        models.forEach(function (item) {
+                            this._add(item);
+                        }, this);
+                    } else {
+                        this._add(models);
+                    }
+                }
+            },
+            remove:{
+                value:function (models) {
+
+                }
+            }
+        });
+
+        return Collection;
+
+    });
     return {
-        Calendar : require('Calendar')
+        Calendar : require('Calendar'),
+        Model : require('Model'),
+        Collection : require('Collection')
     };
 }));

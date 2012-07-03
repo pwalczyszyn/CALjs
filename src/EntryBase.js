@@ -53,12 +53,12 @@ define(['Component'], function (Component) {
                     moveTarget = $(document);
 
                 // Clearing longPress flag
-                this._mouseDownHandler.longPress = undefined;
+                this._mouseDownHandler.longPress = null;
 
                 // Setting new timer to check long press event
                 this._mouseDownHandler.longPressTimer = setTimeout(function () {
 
-                    if (that._mouseDownHandler.longPress == undefined) {
+                    if (that._mouseDownHandler.longPress == null) {
 
                         // Removing move and up listeners
                         moveTarget.off(that.MOUSE_MOVE_EV, that._mouseMoveHandler);

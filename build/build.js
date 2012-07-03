@@ -4,7 +4,7 @@
         "almond":"../build/almond",
         "text":"../build/text"
     },
-    include:["almond", "Calendar"],
+    include:["almond", "Calendar", "Model", "Collection"],
     preserveLicenseComments:true,
     out:"caljs-built.js",
     wrap:{

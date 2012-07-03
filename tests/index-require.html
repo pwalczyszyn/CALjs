@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CalJS component test</title>
+    <title>CalJS RequireJS tests</title>
 
     <link rel="stylesheet" type="text/css" href="../caljs.css" media="all">
     <style type="text/css">
@@ -16,19 +16,29 @@
         }
     </style>
 
-    <script type="text/javascript" src="scripts/jquery-1.7.2.js"></script>
-    <script type="text/javascript" src="scripts/iscroll-lite.js"></script>
-    <script type="text/javascript" src="../caljs.js"></script>
-
+    <script type="text/javascript" src="scripts/require.js"></script>
     <script type="text/javascript">
+        require.config({
+            baseUrl:'../src',
+            paths:{
+                jquery:'../tests/scripts/jquery-1.7.2',
+                text:'../tests/scripts/text',
+                iScroll:'../tests/scripts/iscroll-lite'
+            },
+            shim:{
+                iScroll:{
+                    exports:'iScroll'
+                }
+            }
+        });
 
-        function onBodyLoad() {
+        require(['jquery', 'Calendar', 'Collection'], function ($, Calendar, Collection) {
 
             var startDateTime = new Date(),
                     endDateTime = new Date();
             endDateTime.setHours(startDateTime.getHours() + 2, 0, 0, 0);
 
-            var entries = new CalJS.Collection([
+            var entries = new Collection([
                 {
                     Title:'Test Entry',
                     Color:'#ff0000',
@@ -37,13 +47,15 @@
                 }
             ]);
 
-            var cal = (new CalJS.Calendar({el:'#container', collection:entries})).render();
+            var cal = (new Calendar({el:'#container', collection:entries})).render();
             cal.activate();
-        }
+
+        });
 
     </script>
+
 </head>
-<body onload="onBodyLoad()">
+<body>
 <div id="container"/>
 </body>
 </html>

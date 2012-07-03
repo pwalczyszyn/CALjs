@@ -1,5 +1,7 @@
 
     return {
-        Calendar : require('Calendar')
+        Calendar : require('Calendar'),
+        Model : require('Model'),
+        Collection : require('Collection')
     };
 }));

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CalJS component test</title>
+    <title>CalJS AMD test</title>
 
     <link rel="stylesheet" type="text/css" href="../caljs.css" media="all">
     <style type="text/css">
@@ -16,16 +16,26 @@
         }
     </style>
 
-    <script type="text/javascript" src="scripts/jquery-1.7.2.js"></script>
-    <script type="text/javascript" src="scripts/iscroll-lite.js"></script>
-    <script type="text/javascript" src="../caljs.js"></script>
-
+    <script type="text/javascript" src="scripts/require.js"></script>
     <script type="text/javascript">
 
-        function onBodyLoad() {
+        require.config({
+            paths:{
+                jquery:'scripts/jquery-1.7.2',
+                text:'scripts/text',
+                iScroll:'scripts/iscroll-lite',
+                CalJS:'../caljs'
+            },
+            shim:{
+                iScroll:{
+                    exports:'iScroll'
+                }
+            }
+        });
 
-            var startDateTime = new Date(),
-                    endDateTime = new Date();
+        require(['jquery', 'CalJS'], function ($, CalJS) {
+            var startDateTime = new Date,
+                    endDateTime = new Date;
             endDateTime.setHours(startDateTime.getHours() + 2, 0, 0, 0);
 
             var entries = new CalJS.Collection([
@@ -39,11 +49,13 @@
 
             var cal = (new CalJS.Calendar({el:'#container', collection:entries})).render();
             cal.activate();
-        }
+
+        });
 
     </script>
+
 </head>
-<body onload="onBodyLoad()">
+<body>
 <div id="container"/>
 </body>
 </html>
