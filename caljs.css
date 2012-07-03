@@ -42,7 +42,7 @@ cj\:WeekView {
     position: absolute;
     width: 100%;
     top: 60px;
-    bottom: 0;
+    bottom: 5px;
 }
 
 cj\:RangeLabel {
@@ -71,11 +71,13 @@ cj\:WeekDayHeader {
     font-size: 0.8em;
     color: #6d6e71;
     background-size: 100% 100%;
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent)),
+                      -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
 }
 
 cj\:WeekDayHeader:last-child {
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99.5%, rgba(215, 215, 215, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1))),
+                      -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
 }
 
 cj\:WeekDayHeader cj\:Label:first-child {
@@ -177,11 +179,13 @@ cj\:WeekDay {
     float: left;
     height: 100%;
     border-bottom: solid 1px rgba(200, 200, 200, 1);
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent)),
+                      -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
 }
 
 cj\:WeekDay:last-child {
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99.5%, rgba(200, 200, 200, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(200, 200, 200, 1))),
+                      -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 1)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
 }
 
 cj\:WeekDayHeader:nth-child(odd), cj\:WeekDay:nth-child(odd) {
@@ -258,6 +262,93 @@ cj\:RangeChangeMessage {
     width: 500px;
     margin: auto;
     box-shadow: 0px 10px 15px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* MonthView styles */
+
+cj\:MonthView {
+    position: absolute;
+    display: block;
+    overflow: hidden;
+    left: 5px;
+    top: 60px;
+    right: 5px;
+    bottom: 5px;
+}
+
+cj\:MonthWeek {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+cj\:MonthDay {
+    position: relative;
+    display: inline-block;
+    float: left;
+    height: 100%;
+    padding: 5px;
+    overflow: hidden;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    border: 1px solid rgba(200, 200, 200, 1);
+}
+
+cj\:MonthDay[current=false] {
+    background-color: rgba(230, 230, 230, 1);
+}
+
+cj\:MonthDayLabel {
+    position: relative;
+    display: block;
+    text-align: right;
+    color: #6D6E71;
+}
+
+cj\:MonthDay[today=true] tc\:MonthDayLabel {
+    font-weight: bold;
+    color: #0078d4;
+}
+
+cj\:MonthEntry {
+    position: relative;
+    display: block;
+
+    height: 1.5em;
+    margin-top: 0.2em;
+}
+
+cj\:MonthEntry.selected {
+    background-color: white;
+}
+
+cj\:Label.month-entry-title {
+    position: absolute;
+    display: block;
+
+    line-height: 1.5em;
+    left: 15px;
+    right: 52px;
+
+    font-size: 0.9em;
+    cursor: default;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+cj\:Label.month-entry-start-time {
+    position: absolute;
+    display: block;
+
+    line-height: 1.5em;
+    right: 0;
+    width: 50px;
+    font-size: 0.7em;
+
+    cursor: default;
+    color: #6D6E71;
 }
 
 /*******************************************************

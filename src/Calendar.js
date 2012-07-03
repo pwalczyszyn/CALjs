@@ -60,12 +60,13 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 value:function render() {
                     // Creating $calendar DOM
                     this.$calendar = $(CalendarTpl);
+
                     // Registering $calendar event handlers
-                    this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', this._prevBtn_clickHandler.bind(this));
-                    this.$calendar.on('tbclick', 'cj\\:Button.btn-next', this._nextBtn_clickHandler.bind(this));
-                    this.$calendar.on('tbclick', 'cj\\:Button.btn-week-view', this._weekBtn_clickHandler.bind(this));
-                    this.$calendar.on('tbclick', 'cj\\:Button.btn-month-view', this._monthBtn_clickHandler.bind(this));
-                    this.$calendar.on('tbclick', 'cj\\:Button.btn-toggle-non-working', this._toggleBtn_clickHandler.bind(this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', this.bind(this._prevBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-next', this.bind(this._nextBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-week-view', this.bind(this._weekBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-month-view', this.bind(this._monthBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-toggle-non-working', this.bind(this._toggleBtn_clickHandler, this));
 
                     // Creating WeekView as initial current view
                     this.weekView = this.currentView = new WeekView({
@@ -78,7 +79,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                     // Adding context menu handler
                     this.weekView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
                     // Adding mouse or touch down event handler
-                    this.weekView.$el.on(this.MOUSE_DOWN_EV, this._container_mouseDownHandler.bind(this));
+                    this.weekView.$el.on(this.MOUSE_DOWN_EV, this.bind(this._container_mouseDownHandler, this));
 
                     // Appending current view to the DOM
                     this.$calendar.append(this.currentView.el);
@@ -123,14 +124,15 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
             _weekBtn_clickHandler:{
                 value:function _weekBtn_clickHandler() {
                     if (this.currentView != this.weekView) {
-
                         // Detaching existing view
                         this.currentView.$el.detach();
 
                         // Changing current view reference
                         this.currentView = this.weekView;
+
                         // Appending current view to the DOM
-                        this.$el.append(this.currentView.el);
+                        this.$calendar.append(this.currentView.el);
+
                         // Updating date to display in current view
                         this.currentView.showDate(this.date);
 
@@ -159,8 +161,10 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                         // Changing current view reference
                         this.currentView = this.monthView;
+
                         // Appending current view to the DOM
-                        this.$el.append(this.currentView.el);
+                        this.$calendar.append(this.currentView.el);
+
                         // Updating date to display in current view
                         this.currentView.showDate(this.date);
 

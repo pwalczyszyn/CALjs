@@ -31,6 +31,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                     var that = this;
                     require(['iScroll'], function (iScroll) {
                         that.scroller = new iScroll(that.$scroller[0], {hScrollbar:false});
+                        that.scroller.scrollTo(0, -(that.currentScrollHour * that.hourHeight), 200);
                     }, function (err) {
                         alert('iScroll not found, please provide it to scroll CalJS week view on devices!');
                     });
@@ -109,7 +110,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
 
             next:{
                 value:function next() {
-                    this.currentScrollHour = this.$container.position().top / this.hourHeight;
+                    this._setCurrentScrollHour();
 
                     var nextDate = new Date(this.rangeStartDate);
                     nextDate.setDate(nextDate.getDate() + 7);
@@ -121,7 +122,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
 
             prev:{
                 value:function prev() {
-                    this.currentScrollHour = this.$container.position().top / this.hourHeight;
+                    this._setCurrentScrollHour();
 
                     var prevDate = new Date(this.rangeStartDate);
                     prevDate.setDate(prevDate.getDate() - 7);
@@ -133,10 +134,16 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
 
             toggleNonWorking:{
                 value:function toggleNonWorking() {
-                    this.currentScrollHour = this.$container.position().top / this.hourHeight;
+                    this._setCurrentScrollHour();
 
                     this.nonWorkingHidden = !this.nonWorkingHidden;
                     this.updateView();
+                }
+            },
+
+            _setCurrentScrollHour:{
+                value:function () {
+                    this.currentScrollHour = -this.$container.position().top / this.hourHeight;
                 }
             },
 
@@ -169,10 +176,8 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                 value:function selectEventEntries(calEvent) {
                     this.entries.forEach(function (entry) {
 
-                        if (calEvent == entry.model)
-                            entry.select();
-                        else if (entry.model == this.selectedEvent)
-                            entry.unselect();
+                        if (calEvent == entry.model) entry.select();
+                        else if (entry.model == this.selectedEvent) entry.unselect();
 
                     }, this);
 
@@ -186,7 +191,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
             deactivateView:{
                 value:function () {
                     // Measuring current scroll hour before deactivation
-                    this.currentScrollHour = this.$container.position().top / this.hourHeight;
+                    this._setCurrentScrollHour();
                     // Disabling scroller to preserve resources
                     if (this.scroller) this.scroller.disable();
                 }
@@ -283,7 +288,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                     }
 
                     // Setting days canvas height, this +1 is additional pixel for bottom border
-                    this.$container.height(this.hourHeight * 24 + 1);
+                    this.$container.height(this.hourHeight * 24 + 3);
 
                     // Removing existing headers
                     if (this.$headers.length > 0)

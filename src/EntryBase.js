@@ -12,11 +12,11 @@ define(['Component'], function (Component) {
         Component.call(this, options);
 
         if (!this.isTouch) {
-            this.$el.on('click', this._clickHandler.bind(this));
-            this.$el.on('contextmenu', this._clickHandler.bind(this));
+            this.$el.on('click', this.bind(this._clickHandler, this));
+            this.$el.on('contextmenu', this.bind(this._clickHandler, this));
         }
 
-        this.$el.on(this.MOUSE_DOWN_EV, this._mouseDownHandler.bind(this));
+        this.$el.on(this.MOUSE_DOWN_EV, this.bind(this._mouseDownHandler, this));
     };
 
     EntryBase.prototype = Object.create(Component.prototype, {

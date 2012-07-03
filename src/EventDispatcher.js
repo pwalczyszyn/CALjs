@@ -63,6 +63,14 @@ define(function () {
                         }
                     }
                 }
+            },
+
+            bind:{
+                value:function bind(handler, thisObject) {
+                    return function () {
+                        handler.apply(thisObject, Array.prototype.slice.call(arguments));
+                    }
+                }
             }
         });
         return EventDispatcher;

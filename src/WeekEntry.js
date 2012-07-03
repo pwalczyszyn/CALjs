@@ -8,7 +8,7 @@
 
 define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
     function (EntryBase, DateHelper, WeekEntryTemplate) {
-        var WeekEntry = function (options) {
+        var WeekEntry = function WeekEntry(options) {
 
             if (!options.el) options.el = WeekEntryTemplate;
 
@@ -24,9 +24,9 @@ define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
 
             this.entryBottom = 0;
 
-            this.$titleLabel = this.$('cj\\:Content cj\\:Label');
-
             this.$colorBar = this.$('cj\\:ColorBar');
+
+            this.$titleLabel = this.$('cj\\:Content cj\\:Label');
 
             this.$resizeBarTop = null;
 

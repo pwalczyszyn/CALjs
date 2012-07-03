@@ -18,26 +18,6 @@
 
 // CalJS version 0.0.1
 
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//	Copyright 2012 Piotr Walczyszyn (http://outof.me | @pwalczyszyn)
-//
-//	Licensed under the Apache License, Version 2.0 (the "License");
-//	you may not use this file except in compliance with the License.
-//	You may obtain a copy of the License at
-//
-//		http://www.apache.org/licenses/LICENSE-2.0
-//
-//	Unless required by applicable law or agreed to in writing, software
-//	distributed under the License is distributed on an "AS IS" BASIS,
-//	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//	See the License for the specific language governing permissions and
-//	limitations under the License.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-
-// CalJS version 0.0.1
-
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
@@ -369,80 +349,104 @@ define("almond", function(){});
  * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
  *
  * User: pwalczys
+ * Date: 6/6/12
+ * Time: 3:44 PM
+ */
+
+define('EventDispatcher',[],function () {
+        var EventDispatcher = function () {
+            this.handlersMap = {};
+        };
+        EventDispatcher.prototype = Object.create(null, {
+            on:{
+                value:function on(eventNames, handlerFunction, thisObject) {
+                    var events = eventNames.split(' ');
+                    events.forEach(function (eventName) {
+                        var handlers = this.handlersMap[eventName],
+                            isOn = false;
+                        if (!handlers) {
+                            handlers = this.handlersMap[eventName] = [];
+                        } else {
+                            isOn = handlers.some(function (ref) {
+                                return ref.handlerFunction === handlerFunction;
+                            });
+                        }
+                        if (!isOn) handlers.push({handlerFunction:handlerFunction, thisObject:thisObject});
+                    }, this);
+                }
+            },
+
+            off:{
+                value:function off(eventNames, handlerFunction) {
+                    if (typeof eventNames === 'undefined') {
+                        for (var eventName in this.handlersMap) {
+                            delete this.handlersMap[eventName];
+                        }
+                    } else {
+                        var events = eventNames.split(' ');
+                        events.forEach(function (eventName) {
+                            if (typeof handlerFunction === 'undefined') {
+                                delete this.handlersMap[eventName];
+                            } else {
+                                this.handlersMap[eventName].forEach(function (ref, index, arr) {
+                                    if (ref.handlerFunction === handlerFunction) arr.splice(index, 1);
+                                }, this);
+                            }
+                        }, this);
+                    }
+                }
+            },
+
+            trigger:{
+                value:function trigger(eventName, args) {
+                    if (typeof eventName !== 'undefined') {
+                        var handlers = this.handlersMap[eventName];
+                        if (handlers) {
+                            handlers.forEach(function (ref) {
+                                var thisObject = typeof ref.thisObject !== 'undefined' ? ref.thisObject : this;
+                                if (!Array.isArray(args)) args = [args];
+                                ref.handlerFunction.apply(thisObject, args);
+                            }, this);
+                        }
+                    }
+                }
+            },
+
+            bind:{
+                value:function bind(handler, thisObject) {
+                    return function () {
+                        handler.apply(thisObject, Array.prototype.slice.call(arguments));
+                    }
+                }
+            }
+        });
+        return EventDispatcher;
+    }
+);
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
  * Date: 5/25/12
  * Time: 3:33 PM
  */
 
-define('Component',[], function () {
+define('Component',['EventDispatcher'], function (EventDispatcher) {
 
         var Component = function (options) {
+            EventDispatcher.call(this);
 
             this.isTouch = 'ontouchstart' in window;
             this.MOUSE_DOWN_EV = this.isTouch ? 'touchstart' : 'mousedown';
             this.MOUSE_MOVE_EV = this.isTouch ? 'touchmove' : 'mousemove';
             this.MOUSE_UP_EV = this.isTouch ? 'touchend' : 'mouseup';
 
-            this.bindHandler = function bindHandler(handler, thisObject) {
-                return function () {
-                    handler.apply(thisObject, Array.prototype.slice.call(arguments));
-                }
-            }
-
-            var handlersMap = {};
-            this.on = function on(eventNames, handlerFunction, thisObject) {
-                var events = eventNames.split(' ');
-                events.forEach(function (eventName) {
-                    var handlers = handlersMap[eventName],
-                        isOn = false;
-                    if (!handlers) {
-                        handlers = handlersMap[eventName] = [];
-                    } else {
-                        isOn = handlers.some(function (ref) {
-                            return ref.handlerFunction === handlerFunction;
-                        });
-                    }
-                    if (!isOn) handlers.push({'handlerFunction':handlerFunction, 'thisObject':thisObject});
-                }, this);
-            }
-
-            this.off = function off(eventNames, handlerFunction) {
-                if (typeof eventNames === 'undefined') {
-                    for (var eventName in handlersMap) {
-                        delete handlersMap[eventName];
-                    }
-                } else {
-                    var events = eventNames.split(' ');
-                    events.forEach(function (eventName) {
-                        if (typeof handlerFunction === 'undefined') {
-                            delete handlersMap[eventName];
-                        } else {
-                            handlersMap[eventName].forEach(function (ref, index, arr) {
-                                if (ref.handlerFunction === handlerFunction) arr.splice(index, 1);
-                            }, this);
-                        }
-                    }, this);
-                }
-            }
-
-            this.trigger = function trigger(eventName, args) {
-                if (typeof eventName !== 'undefined') {
-                    var handlers = handlersMap[eventName];
-                    if (handlers) {
-                        handlers.forEach(function (ref) {
-                            var thisObject = typeof ref.thisObject !== 'undefined' ? ref.thisObject : this;
-                            if (!Array.isArray(args)) args = [args];
-                            ref.handlerFunction.apply(thisObject, args);
-                        }, this);
-                    }
-                }
-            }
-
             this.options = options;
-            if (this.options) {
-                if (this.options.el) this.setElement(this.options.el);
-                if (this.options.model) this.setModel(this.options.model);
-            }
+            this.model = options ? options.model : null;
+            this.collection = options ? options.collection : null;
+            this.setElement(options ? options.el : null);
         };
+        Component.prototype = Object.create(EventDispatcher.prototype);
 
         Component.prototype.setElement = function (el) {
             if (!el) el = '<div/>';
@@ -454,18 +458,473 @@ define('Component',[], function () {
             return this.$el.find(selector);
         };
 
-        Component.prototype.setModel = function (model) {
-            this.model = model;
-        };
-
         Component.prototype.render = function () {
             return this;
         };
 
+        Component.prototype.remove = function remove() {
+            this.off();
+            this.$el.remove();
+        };
+
         return Component;
     }
-)
-;
+);
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 6/10/12
+ * Time: 4:53 PM
+ */
+
+define('EntryBase',['Component'], function (Component) {
+
+    var EntryBase = function (options) {
+        Component.call(this, options);
+
+        if (!this.isTouch) {
+            this.$el.on('click', this.bind(this._clickHandler, this));
+            this.$el.on('contextmenu', this.bind(this._clickHandler, this));
+        }
+
+        this.$el.on(this.MOUSE_DOWN_EV, this.bind(this._mouseDownHandler, this));
+    };
+
+    EntryBase.prototype = Object.create(Component.prototype, {
+
+        /**
+         * Public functions
+         */
+
+        select:{
+            value:function select() {
+                this.$el.addClass('selected');
+            }
+        },
+
+        unselect:{
+            value:function unselect() {
+                this.$el.removeClass('selected');
+            }
+        },
+
+        /**
+         * Private functions
+         */
+        _mouseDownHandler:{
+            value:function _mouseDownHandler(event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                // Triggering selected event
+                this.trigger('focused', this);
+
+                var that = this,
+                // For desktop devices document needs to be a move and up target
+                    moveTarget = $(document);
+
+                // Clearing longPress flag
+                this._mouseDownHandler.longPress = undefined;
+
+                // Setting new timer to check long press event
+                this._mouseDownHandler.longPressTimer = setTimeout(function () {
+
+                    if (that._mouseDownHandler.longPress == undefined) {
+
+                        // Removing move and up listeners
+                        moveTarget.off(that.MOUSE_MOVE_EV, that._mouseMoveHandler);
+                        moveTarget.off(that.MOUSE_UP_EV, that._mouseUpHandler);
+
+                        that._mouseDownHandler.longPress = true;
+                        that.trigger('contextMenu', that);
+                    }
+
+                }, 300);
+
+                // Getting touch point with touch coordinates, this depends on the runtime,
+                // on devices it's part of touches array
+                var touchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event;
+
+                // Entry element offset
+                var elOffset = this.$el.offset();
+
+                // Setting touch point X and Y
+                this._mouseDownHandler.touchPoint = {
+                    x:touchPoint.pageX,
+                    y:touchPoint.pageY,
+                    offsetX:touchPoint.pageX - elOffset.left,
+                    offsetY:touchPoint.pageY - elOffset.top
+                };
+
+                // Adding move and up listeners
+                moveTarget.on(this.MOUSE_MOVE_EV, {context:this}, this._mouseMoveHandler);
+                moveTarget.on(this.MOUSE_UP_EV, {context:this}, this._mouseUpHandler);
+            }
+        },
+
+        _mouseMoveHandler:{
+            value:function _mouseMoveHandler(event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                var that = event.data.context,
+                    dragEvent;
+
+                if (that.dragging) {
+                    dragEvent = that._createDragEvent('dragging', event.originalEvent, that);
+                    that.trigger(dragEvent.type, dragEvent);
+                    return;
+                }
+
+                // Getting touch point with touch coordinates, this depends on the runtime,
+                // on devices it part of touches array
+                var moveTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event;
+
+                // Getting touch point when mouse was down
+                var downTouchPoint = that._mouseDownHandler.touchPoint;
+
+                if (that.canDrag && (Math.abs(downTouchPoint.x - moveTouchPoint.pageX) > 20
+                    || Math.abs(downTouchPoint.y - moveTouchPoint.pageY) > 20)) {
+
+                    that.dragging = true;
+                    that._mouseDownHandler.longPress = false;
+
+                    dragEvent = that._createDragEvent('draggingStart', event.originalEvent, that);
+                    that.trigger(dragEvent.type, dragEvent);
+                }
+            }
+        },
+
+        _mouseUpHandler:{
+            value:function _mouseUpHandler(event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                var that = event.data.context;
+                $(event.currentTarget).off(that.MOUSE_MOVE_EV, that._mouseMoveHandler);
+                $(event.currentTarget).off(that.MOUSE_UP_EV, that._mouseUpHandler);
+
+                // Clearing long press timer
+                clearTimeout(that._mouseDownHandler.longPressTimer);
+
+                if (that.dragging) {
+                    that.dragging = false;
+                    var dragEvent = that._createDragEvent('drop', event.originalEvent, that);
+                    that.trigger(dragEvent.type, dragEvent);
+                }
+            }
+        },
+
+        _createDragEvent:{
+            value:function _createDragEvent(type, originalEvent, target) {
+                var touchPoint;
+                if (originalEvent.type.indexOf('touch') == 0) {
+
+                    if (originalEvent.touches.length > 0)
+                        touchPoint = originalEvent.touches[0];
+                    else if (originalEvent.changedTouches.length > 0)
+                        touchPoint = originalEvent.changedTouches[0];
+                    else
+                        throw new Error('Touch point coordinates are not available!');
+
+                } else {
+                    touchPoint = originalEvent;
+                }
+
+                return {
+                    type:type,
+                    target:target,
+                    clientX:touchPoint.clientX,
+                    clientY:touchPoint.clientY,
+                    pageX:touchPoint.pageX,
+                    pageY:touchPoint.pageY,
+                    screenX:touchPoint.screenX,
+                    screenY:touchPoint.screenY,
+                    offsetX:this._mouseDownHandler.touchPoint.offsetX,
+                    offsetY:this._mouseDownHandler.touchPoint.offsetY
+                };
+            }
+
+        },
+
+        _clickHandler:{
+            value:function _clickHandler(event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                // Triggering focused event
+                this.trigger('focused', this);
+
+                if (event.button == 2)
+                    this.trigger('contextMenu', this);
+            }
+        }
+
+    });
+
+    return EntryBase;
+});
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 2/22/12
+ * Time: 3:50 PM
+ */
+
+define('utils/DateHelper',[],function () {
+
+    var DateHelper = function () {
+    }
+
+    DateHelper.SEC_MS = 1000;
+
+    DateHelper.MINUTE_MS = 60 * DateHelper.SEC_MS;
+
+    DateHelper.HOUR_MS = 60 * DateHelper.MINUTE_MS;
+
+    DateHelper.DAY_MS = 24 * DateHelper.HOUR_MS;
+
+    DateHelper.toISO8601 = function (date) {
+        var year = date.getUTCFullYear();
+        var month = date.getUTCMonth() + 1;
+        var day = date.getUTCDate();
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var seconds = date.getSeconds();
+
+        month = ( month < 10 ) ? '0' + month : month;
+        day = ( day < 10 ) ? '0' + day : day;
+        hours = ( hours < 10 ) ? '0' + hours : hours;
+        minutes = ( minutes < 10 ) ? '0' + minutes : minutes;
+        seconds = ( seconds < 10 ) ? '0' + seconds : seconds;
+
+        var tzOffsetSign = "-";
+        var tzOffset = date.getTimezoneOffset();
+        if (tzOffset < 0) {
+            tzOffsetSign = "+";
+            tzOffset = -tzOffset;
+        }
+        var tzOffsetMinutes = tzOffset % 60;
+        var tzOffsetHours = (tzOffset - tzOffsetMinutes) / 60;
+        var tzOffsetMinutesStr = tzOffsetMinutes < 10 ? "0" + tzOffsetMinutes : "" + tzOffsetMinutes;
+        var tzOffsetHoursStr = tzOffsetHours < 10 ? "0" + tzOffsetHours : "" + tzOffsetHours;
+        return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes + ':' + seconds + ".000" + tzOffsetSign + "" + tzOffsetHoursStr + "" + tzOffsetMinutesStr;
+
+    }
+
+    DateHelper.parseISO8601 = function (string) {
+        if ((string == null) || (string == "")) return null;
+        var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
+            "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +
+            "(Z|(([-+])([0-9]{2})([0-9]{2})))?)?)?)?";
+        var d = string.match(new RegExp(regexp));
+        var offset = 0;
+        var date = new Date(d[1], 0, 1);
+
+        if (d[3]) {
+            date.setMonth(d[3] - 1);
+        }
+        if (d[5]) {
+            date.setDate(d[5]);
+        }
+        if (d[7]) {
+            date.setHours(d[7]);
+        }
+        if (d[8]) {
+            date.setMinutes(d[8]);
+        }
+        if (d[10]) {
+            date.setSeconds(d[10]);
+        }
+        if (d[12]) {
+            date.setMilliseconds(Number("0." + d[12]) * 1000);
+        }
+        if (d[14]) {
+            offset = (Number(d[16]) * 60) + Number(d[17]);
+            offset = ((d[15] == '-') ? offset : -offset);
+        }
+        offset = offset - (date.getTimezoneOffset());
+        date.setTime(date.getTime() + offset * 60 * 1000);
+        return date;
+    }
+
+
+    var addDays = DateHelper.addDays = function (date, days) {
+        var result = new Date(date);
+        result.setDate(date.getDate() + days);
+        return result;
+    };
+
+    var firstDayOfWeek = DateHelper.firstDayOfWeek = function (date) {
+        var day = date.getDay();
+        day = (day == 0) ? -6 : day - 1;
+        return addDays(date, -day);
+    };
+
+    var hoursInMs = DateHelper.hoursInMs = function (date) {
+        return date.getHours() * 60 * 60 * 1000
+            + date.getMinutes() * 60 * 1000
+            + date.getSeconds() * 1000
+            + date.getMilliseconds();
+    };
+
+    var sameDates = DateHelper.sameDates = function (date1, date2) {
+        return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth()
+            && date1.getDate() == date2.getDate();
+    };
+
+    var lastDayOfWeek = DateHelper.lastDayOfWeek = function (date) {
+        var day = date.getDay();
+        (day == 0) || (day = 7 - day);
+        return addDays(date, day);
+    };
+
+    var nextWeekFirstDay = DateHelper.nextWeekFirstDay = function (date) {
+        return addDays(firstDayOfWeek(date), 7);
+    };
+
+    var prevWeekFirstDay = DateHelper.prevWeekFirstDay = function (date) {
+        return addDays(firstDayOfWeek(date), -7);
+    };
+
+    var nextMonthFirstDay = DateHelper.nextMonthFirstDay = function (date) {
+        var result = new Date(date);
+        result.setMonth(date.getMonth() + 1, 1);
+        return result;
+    };
+
+    var prevMonthFirstDay = DateHelper.prevMonthFirstDay = function (date) {
+        var result = new Date(date);
+        result.setMonth(date.getMonth() - 1, 1);
+        return result;
+    };
+
+
+    /*
+     * Date Format 1.2.3
+     * (c) 2007-2009 Steven Levithan <stevenlevithan.com>
+     * MIT license
+     *
+     * Includes enhancements by Scott Trenda <scott.trenda.net>
+     * and Kris Kowal <cixar.com/~kris.kowal/>
+     *
+     * Accepts a date, a mask, or a date and a mask.
+     * Returns a formatted version of the given date.
+     * The date defaults to the current date/time.
+     * The mask defaults to dateFormat.masks.default.
+     */
+    var format = DateHelper.format = function () {
+        var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+            timezoneClip = /[^-+\dA-Z]/g,
+            pad = function (val, len) {
+                val = String(val);
+                len = len || 2;
+                while (val.length < len) val = "0" + val;
+                return val;
+            };
+
+        // Regexes and supporting functions are cached through closure
+        return function (date, mask, utc) {
+            var dF = format;
+
+            // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+            if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
+                mask = date;
+                date = undefined;
+            }
+
+            // Passing date through Date applies Date.parse, if necessary
+            date = date ? new Date(date) : new Date;
+            if (isNaN(date)) throw SyntaxError("invalid date");
+
+            mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+            // Allow setting the utc argument via the mask
+            if (mask.slice(0, 4) == "UTC:") {
+                mask = mask.slice(4);
+                utc = true;
+            }
+
+            var _ = utc ? "getUTC" : "get",
+                d = date[_ + "Date"](),
+                D = date[_ + "Day"](),
+                m = date[_ + "Month"](),
+                y = date[_ + "FullYear"](),
+                H = date[_ + "Hours"](),
+                M = date[_ + "Minutes"](),
+                s = date[_ + "Seconds"](),
+                L = date[_ + "Milliseconds"](),
+                o = utc ? 0 : date.getTimezoneOffset(),
+                flags = {
+                    d:d,
+                    dd:pad(d),
+                    ddd:dF.i18n.dayNames[D],
+                    dddd:dF.i18n.dayNames[D + 7],
+                    m:m + 1,
+                    mm:pad(m + 1),
+                    mmm:dF.i18n.monthNames[m],
+                    mmmm:dF.i18n.monthNames[m + 12],
+                    yy:String(y).slice(2),
+                    yyyy:y,
+                    h:H % 12 || 12,
+                    hh:pad(H % 12 || 12),
+                    H:H,
+                    HH:pad(H),
+                    M:M,
+                    MM:pad(M),
+                    s:s,
+                    ss:pad(s),
+                    l:pad(L, 3),
+                    L:pad(L > 99 ? Math.round(L / 10) : L),
+                    t:H < 12 ? "a" : "p",
+                    tt:H < 12 ? "am" : "pm",
+                    T:H < 12 ? "A" : "P",
+                    TT:H < 12 ? "AM" : "PM",
+                    Z:utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                    o:(o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                    S:["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+                };
+
+            return mask.replace(token, function ($0) {
+                return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+            });
+        };
+    }();
+
+    // Some common format strings
+    format.masks = {
+        "default":"ddd mmm dd yyyy HH:MM:ss",
+        shortDate:"m/d/yy",
+        mediumDate:"mmm d, yyyy",
+        longDate:"mmmm d, yyyy",
+        fullDate:"dddd, mmmm d, yyyy",
+        shortTime:"h:MM TT",
+        mediumTime:"h:MM:ss TT",
+        longTime:"h:MM:ss TT Z",
+        isoDate:"yyyy-mm-dd",
+        isoTime:"HH:MM:ss",
+        isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",
+        isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+    };
+
+    // Internationalization strings
+    format.i18n = {
+        dayNames:[
+            "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+            "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+        ],
+        monthNames:[
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+            "November", "December"
+        ]
+    };
+
+    return DateHelper;
+});
 /**
  * @license RequireJS text 2.0.0 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -770,7 +1229,210 @@ define('text',['module'], function (module) {
     return text;
 });
 
-define('text!WeekView.tpl!strip',[],function () { return '<cj:WeekView>\n\n</cj:WeekView>\n\n';});
+define('text!WeekEntry.tpl!strip',[],function () { return '<cj:WeekEntry>\n    <cj:ColorBar></cj:ColorBar>\n    <cj:Content>\n        <cj:Centered>\n            <cj:Label class="week-entry-title"></cj:Label>\n        </cj:Centered>\n    </cj:Content>\n</cj:WeekEntry>\n\n';});
+
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 6/6/12
+ * Time: 4:36 PM
+ */
+
+define('WeekEntry',['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
+    function (EntryBase, DateHelper, WeekEntryTemplate) {
+        var WeekEntry = function WeekEntry(options) {
+
+            if (!options.el) options.el = WeekEntryTemplate;
+
+            EntryBase.call(this, options);
+
+            this.hourHeight = 0;
+
+            this.startDateTime = null;
+
+            this.endDateTime = null;
+
+            this.entryTop = 0;
+
+            this.entryBottom = 0;
+
+            this.$colorBar = this.$('cj\\:ColorBar');
+
+            this.$titleLabel = this.$('cj\\:Content cj\\:Label');
+
+            this.$resizeBarTop = null;
+
+            this.$resizeBarBottom = null;
+
+            this.canDrag = true;
+
+            this.dragging = false;
+
+            // Setting hour height in px
+            this.hourHeight = options.hourHeight;
+
+            // Setting entry start date time
+            this.startDateTime = options.startDateTime;
+
+            // Setting entry end date time
+            this.endDateTime = options.endDateTime;
+
+            // Doing initial measurements
+            this.measure();
+
+            // Adding top selection bar if possible
+            if (this.startDateTime.getTime() == this.model.get('StartDateTime').getTime()) {
+                this.$resizeBarTop = $('<cj:Handle />');
+            } else {
+                // TODO: implement dragging from spanning days
+                this.canDrag = false;
+            }
+
+            // Adding bottom selection bar if possible
+            if (this.endDateTime.getTime() == this.model.get('EndDateTime').getTime()) {
+                this.$resizeBarBottom = $('<cj:Handle />');
+            }
+
+            // TODO: externalize it
+//            this.model.on('change:AccountName', this.model_changeHandler, this);
+//            this.model.on('change:Subject', this.model_changeHandler, this);
+//            this.model.on('change:ActivityType', this.model_changeHandler, this);
+
+        };
+
+        WeekEntry.prototype = Object.create(EntryBase.prototype, {
+
+            render:{
+                value:function render() {
+
+                    this.$colorBar.css('background-color', this.model.get('Color'));
+                    this.$titleLabel.html(this.model.get('Title'));
+
+                    this.$el.css({top:this.entryTop + 'px', bottom:this.entryBottom + 'px'});
+
+                    if (this.$el.hasClass('selected'))
+                        this.select();
+
+                    return this;
+                }
+            },
+
+            measure:{
+                value:function measure() {
+                    // Calculating duration for a day in ms
+                    var duration = this.endDateTime.getTime() - this.startDateTime.getTime();
+
+                    // Calculating millis from beginning of the day
+                    var hour = this.startDateTime.getHours() * DateHelper.HOUR_MS +
+                        this.startDateTime.getMinutes() * DateHelper.MINUTE_MS +
+                        this.startDateTime.getSeconds() * DateHelper.SEC_MS +
+                        this.startDateTime.getMilliseconds();
+
+                    // Entry top in px
+                    this.entryTop = Math.floor(hour / DateHelper.HOUR_MS * this.hourHeight);
+
+                    // Entry bottom in px
+                    this.entryBottom = Math.floor((DateHelper.DAY_MS - (hour + duration)) / DateHelper.HOUR_MS * this.hourHeight);
+                }
+            },
+
+            _resizeBar_mouseDownHandler:{
+                value:function _resizeBar_mouseDownHandler(event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    var that = event.data.context;
+
+                    // Clearing prevPageY
+                    that.prevPageY = null;
+
+                    // Clearing prev time change value
+                    that.timeChange = null;
+
+                    var moveTarget = $(document);
+                    // Adding move and up listeners
+                    moveTarget.on(that.MOUSE_MOVE_EV, event.data, that._resizeBar_mouseMoveHandler);
+                    moveTarget.on(that.MOUSE_UP_EV, event.data, that._resizeBar_mouseUpHandler);
+                }
+            },
+
+            _resizeBar_mouseMoveHandler:{
+                value:function _resizeBar_mouseMoveHandler(event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    var that = event.data.context,
+
+                    // Checking if this is touch or mouse event
+                        touchCoords = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
+
+                    // Setting yDelta
+                        offsetY = that.prevPageY ? touchCoords.pageY - that.prevPageY : 0;
+
+                    that.prevPageY = touchCoords.pageY;
+
+                    // Triggering bar move event
+                    that.trigger('barMove', {offsetY:offsetY, bar:event.data.bar, target:that});
+                }
+            },
+
+            _resizeBar_mouseUpHandler:{
+                value:function resizeBar_mouseUpHandler(event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    var that = event.data.context;
+
+                    $(event.currentTarget).off(that.MOUSE_MOVE_EV, that._resizeBar_mouseMoveHandler);
+                    $(event.currentTarget).off(that.MOUSE_UP_EV, that._resizeBar_mouseUpHandler);
+
+                    // Triggering bar move end event
+                    that.trigger('barMoveEnd', {bar:event.data.bar, target:that});
+                }
+            },
+
+            select:{
+                value:function select() {
+                    // Calling super select function
+                    EntryBase.prototype.select.call(this);
+
+                    // Adding top selection bar if possible
+                    if (this.$resizeBarTop) {
+                        this.$resizeBarTop.appendTo(this.$el);
+                        this.$resizeBarTop.on(this.MOUSE_DOWN_EV, {context:this, bar:'top'}, this._resizeBar_mouseDownHandler);
+                    }
+
+                    // Adding bottom selection bar if possible
+                    if (this.$resizeBarBottom) {
+                        this.$resizeBarBottom.appendTo(this.$el);
+                        this.$resizeBarBottom.on(this.MOUSE_DOWN_EV, {context:this, bar:'bottom'}, this._resizeBar_mouseDownHandler);
+                    }
+                }
+            },
+
+            unselect:{
+                value:function unselect() {
+                    // Calling super unselect function
+                    EntryBase.prototype.unselect.call(this);
+
+                    if (this.$resizeBarTop) {
+                        this.$resizeBarTop.detach();
+                        this.$resizeBarTop.off(this.MOUSE_DOWN_EV, this._resizeBar_mouseDownHandler);
+                    }
+
+                    if (this.$resizeBarBottom) {
+                        this.$resizeBarBottom.detach();
+                        this.$resizeBarBottom.off(this.MOUSE_DOWN_EV, this._resizeBar_mouseDownHandler);
+                    }
+                }
+            }
+
+        });
+
+        return WeekEntry;
+    });
+define('text!WeekView.tpl!strip',[],function () { return '<cj:WeekView>\n    <cj:Headers>\n    </cj:Headers>\n    <cj:Scroller>\n        <cj:Container>\n            <cj:LeftHours>\n                <cj:Label class="hour-marker"></cj:Label>\n                <cj:Label class="hour-marker">01 AM</cj:Label>\n                <cj:Label class="hour-marker">02 AM</cj:Label>\n                <cj:Label class="hour-marker">03 AM</cj:Label>\n                <cj:Label class="hour-marker">04 AM</cj:Label>\n                <cj:Label class="hour-marker">05 AM</cj:Label>\n                <cj:Label class="hour-marker">06 AM</cj:Label>\n                <cj:Label class="hour-marker">07 AM</cj:Label>\n                <cj:Label class="hour-marker">08 AM</cj:Label>\n                <cj:Label class="hour-marker">09 AM</cj:Label>\n                <cj:Label class="hour-marker">10 AM</cj:Label>\n                <cj:Label class="hour-marker">11 AM</cj:Label>\n                <cj:Label class="hour-marker">12 PM</cj:Label>\n                <cj:Label class="hour-marker">01 PM</cj:Label>\n                <cj:Label class="hour-marker">02 PM</cj:Label>\n                <cj:Label class="hour-marker">03 PM</cj:Label>\n                <cj:Label class="hour-marker">04 PM</cj:Label>\n                <cj:Label class="hour-marker">05 PM</cj:Label>\n                <cj:Label class="hour-marker">06 PM</cj:Label>\n                <cj:Label class="hour-marker">07 PM</cj:Label>\n                <cj:Label class="hour-marker">08 PM</cj:Label>\n                <cj:Label class="hour-marker">09 PM</cj:Label>\n                <cj:Label class="hour-marker">10 PM</cj:Label>\n                <cj:Label class="hour-marker">11 PM</cj:Label>\n            </cj:LeftHours>\n            <cj:WeekDays>\n            </cj:WeekDays>\n            <cj:RightHours>\n                <cj:Label class="hour-marker"></cj:Label>\n                <cj:Label class="hour-marker">01 AM</cj:Label>\n                <cj:Label class="hour-marker">02 AM</cj:Label>\n                <cj:Label class="hour-marker">03 AM</cj:Label>\n                <cj:Label class="hour-marker">04 AM</cj:Label>\n                <cj:Label class="hour-marker">05 AM</cj:Label>\n                <cj:Label class="hour-marker">06 AM</cj:Label>\n                <cj:Label class="hour-marker">07 AM</cj:Label>\n                <cj:Label class="hour-marker">08 AM</cj:Label>\n                <cj:Label class="hour-marker">09 AM</cj:Label>\n                <cj:Label class="hour-marker">10 AM</cj:Label>\n                <cj:Label class="hour-marker">11 AM</cj:Label>\n                <cj:Label class="hour-marker">12 PM</cj:Label>\n                <cj:Label class="hour-marker">01 PM</cj:Label>\n                <cj:Label class="hour-marker">02 PM</cj:Label>\n                <cj:Label class="hour-marker">03 PM</cj:Label>\n                <cj:Label class="hour-marker">04 PM</cj:Label>\n                <cj:Label class="hour-marker">05 PM</cj:Label>\n                <cj:Label class="hour-marker">06 PM</cj:Label>\n                <cj:Label class="hour-marker">07 PM</cj:Label>\n                <cj:Label class="hour-marker">08 PM</cj:Label>\n                <cj:Label class="hour-marker">09 PM</cj:Label>\n                <cj:Label class="hour-marker">10 PM</cj:Label>\n                <cj:Label class="hour-marker">11 PM</cj:Label>\n            </cj:RightHours>\n        </cj:Container>\n    </cj:Scroller>\n</cj:WeekView>\n\n';});
 
 /**
  * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
@@ -780,301 +1442,1264 @@ define('text!WeekView.tpl!strip',[],function () { return '<cj:WeekView>\n\n</cj:
  * Time: 1:06 PM
  */
 
-define('WeekView',['Component', 'text!WeekView.tpl!strip'], function (Component, WeekViewTpl) {
+define('WeekView',['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip', 'require'],
+    function (Component, WeekEntry, DateHelper, WeekViewTpl, require) {
 
-    var WeekView = function (options) {
+        var WeekView = function (options) {
+
+            // Setting WeekView template as a root element
+            options.el = WeekViewTpl;
+
+            // Initializing model if it's not set
+            if (!options.collection) options.collection = [];
+
+            // Calling parent constructor
+            Component.call(this, options);
+
+            this.$headers = this.$('cj\\:Headers');
+
+            this.$scroller = this.$('cj\\:Scroller');
+
+            if (this.isTouch) {
+                if (typeof iScroll !== 'undefined') {
+                    this.scroller = new iScroll(this.$scroller[0], {hScrollbar:false});
+                } else {
+                    var that = this;
+                    require(['iScroll'], function (iScroll) {
+                        that.scroller = new iScroll(that.$scroller[0], {hScrollbar:false});
+                        that.scroller.scrollTo(0, -(that.currentScrollHour * that.hourHeight), 200);
+                    }, function (err) {
+                        alert('iScroll not found, please provide it to scroll CalJS week view on devices!');
+                    });
+                }
+            } else {
+                this.$headers.addClass('desktop');
+                this.$scroller.css('overflow-y', 'scroll');
+            }
+
+            this.$container = this.$('cj\\:Container');
+
+            this.$leftHours = this.$('cj\\:LeftHours');
+
+            this.$days = this.$('cj\\:WeekDays');
+
+            this.$rightHours = this.$('cj\\:RightHours');
+
+            this.hourHeight = 0;
+
+            this.currentScrollHour = 7.75;
+
+            this.date = options && options.date ? options.date : new Date;
+
+            this.nonWorkingHidden = options && options.nonWorkingHidden ? options.nonWorkingHidden : false;
+
+            this.nonWorkingDays = options && options.nonWorkingDays ? options.nonWorkingDays : [0, 6];
+
+            this.weekStartDay = options && options.weekStartDay ? options.weekStartDay : 1;
+
+            this.rangeStartDate = null;
+
+            this.rangeEndDate = null;
+
+            this.weekDays = [];
+
+            this.entries = [];
+
+            this.selectedEvent = null;
+
+            this.collection.on('add', this._collection_addHandler, this);
+            this.collection.on('remove', this._collection_removeHandler, this);
+            this.collection.on('change', this._collection_changeHandler, this);
+        };
+
+        WeekView.prototype = Object.create(Component.prototype, {
+
+            _collection_addHandler:{
+                value:function _collection_addHandler(calEvent) {
+                    this._addCalEvent(calEvent);
+                }
+            },
+
+            _collection_removeHandler:{
+                value:function _collection_removeHandler(calEvent) {
+                    this._removeCalEvent(calEvent);
+                }
+            },
+
+            _collection_changeHandler:{
+                value:function _collection_changeHandler(calEvent) {
+                    if (calEvent.hasChanged('StartDateTime') || calEvent.hasChanged('EndDateTime'))
+                        this._updateCalEvent(calEvent);
+                }
+            },
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // WeekView navigation functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            showDate:{
+                value:function showDate(date) {
+                    this.date = date;
+                    this.updateView();
+                }
+            },
+
+            next:{
+                value:function next() {
+                    this._setCurrentScrollHour();
+
+                    var nextDate = new Date(this.rangeStartDate);
+                    nextDate.setDate(nextDate.getDate() + 7);
+                    this.showDate(nextDate);
+
+                    this.trigger('rangeChanged');
+                }
+            },
+
+            prev:{
+                value:function prev() {
+                    this._setCurrentScrollHour();
+
+                    var prevDate = new Date(this.rangeStartDate);
+                    prevDate.setDate(prevDate.getDate() - 7);
+                    this.showDate(prevDate);
+
+                    this.trigger('rangeChanged');
+                }
+            },
+
+            toggleNonWorking:{
+                value:function toggleNonWorking() {
+                    this._setCurrentScrollHour();
+
+                    this.nonWorkingHidden = !this.nonWorkingHidden;
+                    this.updateView();
+                }
+            },
+
+            _setCurrentScrollHour:{
+                value:function () {
+                    this.currentScrollHour = -this.$container.position().top / this.hourHeight;
+                }
+            },
+
+            updateView:{
+                value:function updateView() {
+                    // Setting week range dates
+                    this._setRangeDates();
+
+                    // Setting hour height in px
+                    this._measure();
+
+                    // Drawing background grid based on current hour height
+                    this._drawCalendarGrid();
+
+                    // Adding weeks entries
+                    this._addCalEvents();
+
+                    // Refreshing scroller
+                    if (this.scroller) {
+                        this.scroller.enable();
+                        this.scroller.refresh();
+                        this.scroller.scrollTo(0, -(this.currentScrollHour * this.hourHeight), 200);
+                    } else {
+                        this.$scroller.scrollTop(this.currentScrollHour * this.hourHeight);
+                    }
+                }
+            },
+
+            selectEventEntries:{
+                value:function selectEventEntries(calEvent) {
+                    this.entries.forEach(function (entry) {
+
+                        if (calEvent == entry.model) entry.select();
+                        else if (entry.model == this.selectedEvent) entry.unselect();
+
+                    }, this);
+
+                    this.selectedEvent = calEvent;
+                }
+            },
+
+            /**
+             * Deactivates view
+             */
+            deactivateView:{
+                value:function () {
+                    // Measuring current scroll hour before deactivation
+                    this._setCurrentScrollHour();
+                    // Disabling scroller to preserve resources
+                    if (this.scroller) this.scroller.disable();
+                }
+            },
+
+            _setRangeDates:{
+                value:function _setRangeDates() {
+                    var weekStartDate = new Date(this.date);
+                    weekStartDate.setHours(0, 0, 0, 0);
+                    if (weekStartDate.getDay() < this.weekStartDay)
+                        weekStartDate.setDate(weekStartDate.getDate() + (this.weekStartDay - weekStartDate.getDay()) - 7);
+                    else
+                        weekStartDate.setDate(weekStartDate.getDate() + (this.weekStartDay - weekStartDate.getDay()));
+                    this.rangeStartDate = weekStartDate;
+
+                    var weekEndDate = new Date(weekStartDate);
+                    weekEndDate.setHours(23, 59, 59, 999);
+                    weekEndDate.setDate(weekStartDate.getDate() + 6);
+                    this.rangeEndDate = weekEndDate;
+                }
+            },
+
+            _measure:{
+                value:function _measure() {
+                    var hh = Math.floor(this.$scroller.height() / 9.5),
+                        hhMod = hh % 4;
+                    this.hourHeight = (hhMod != 0) ? hh + (4 - hhMod) : hh;
+                }
+            },
+
+            _drawCalendarGrid:{
+                value:function _drawCalendarGrid() {
+                    var $header,
+                        $day,
+                    // Number of visible days
+                        visibleDaysCount = this.nonWorkingHidden ? 7 - this.nonWorkingDays.length : 7,
+                    // Width of a day in %
+                        dayWidth = Math.floor(100 / visibleDaysCount),
+                    // Width of a last day in %
+                        firstDayMargin = (100 - visibleDaysCount * dayWidth) / 2,
+
+                        day = this.rangeStartDate,
+                        now = new Date,
+                        headers = [],
+                        days = [];
+
+                    this.weekDays.length = 0;
+
+                    for (var i = 0; i < 7; i++) {
+                        if (this.nonWorkingHidden && this.nonWorkingDays.indexOf(day.getDay()) >= 0)
+                            continue;
+
+                        // Creating new day column
+                        $header = $('<cj:WeekDayHeader><cj:Label>' + DateHelper.format(day, "d")
+                            + '</cj:Label><cj:Label>' + DateHelper.format(day, "ddd") + '</cj:Label></cj:WeekDayHeader>')
+                            .css('width', dayWidth + '%');
+
+                        // Creating new day column
+                        $day = $('<cj:WeekDay/>').css({
+                            'background-size':'100% ' + this.hourHeight + 'px',
+                            width:dayWidth + '%',
+                            height:this.hourHeight * 24
+                        });
+
+                        // Setting margin for first day of a week
+                        if (i == 0) {
+                            $day.css('margin-left', firstDayMargin + '%');
+                            $header.css('margin-left', firstDayMargin + '%');
+                        }
+
+                        // Setting today class
+                        if (day.getYear() == now.getYear() && day.getMonth() == now.getMonth() && day.getDate() == now.getDate()) {
+                            $day.addClass('today');
+                            $header.addClass('today');
+                        }
+
+                        // Setting non-working class
+                        if (this.nonWorkingDays.indexOf(day.getDay()) >= 0) {
+                            $day.addClass('non-working');
+                            $header.addClass('non-working');
+                        }
+
+                        // Adding to local array
+                        headers.push($header[0]);
+
+                        // Adding to local array
+                        days.push($day[0]);
+
+                        // Pushing day date into the weekDays array
+                        this.weekDays.push(day);
+
+                        // Incrementing to next day
+                        day = DateHelper.addDays(day, 1);
+                    }
+
+                    // Setting days canvas height, this +1 is additional pixel for bottom border
+                    this.$container.height(this.hourHeight * 24 + 3);
+
+                    // Removing existing headers
+                    if (this.$headers.length > 0)
+                        this.$headers.empty();
+
+                    if (headers.length > 0)
+                    // Appending day column to the canvas
+                        this.$headers.append(headers);
+
+                    // Removing existing days
+                    if (this.$days.length > 0)
+                        this.$days.empty();
+
+                    if (days.length > 0)
+                    // Appending day column to the canvas
+                        this.$days.append(days);
+                }
+            },
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // CalEvent handling functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            _addCalEvents:{
+                value:function _addCalEvents() {
+                    // Removing all previous entries
+                    this.entries.forEach(this._removeEntryEventHandlers, this);
+
+                    // Clearing entries array
+                    this.entries.length = 0;
+
+                    // Adding model entries
+                    this.collection.forEach(this._addCalEvent, this);
+                }
+            },
+
+            _addCalEvent:{
+                value:function _addCalEvent(calEvent) {
+
+                    var weekStartMs = this.rangeStartDate.getTime(),
+                        weekEndMs = this.rangeEndDate.getTime();
+
+                    var entryStartTime = new Date(calEvent.get('StartDateTime')),
+                        entryStartTimeMs = entryStartTime.getTime(),
+                        entryEndTime = new Date(calEvent.get('EndDateTime')),
+                        entryEndTimeMs = entryEndTime.getTime();
+
+                    if (entryStartTimeMs >= weekStartMs && entryStartTimeMs <= weekEndMs ||
+                        entryEndTimeMs >= weekStartMs && entryEndTimeMs <= weekEndMs) {
+
+                        // Array of entries grouped by day
+                        var dayEntries = {};
+
+                        while (entryStartTimeMs <= entryEndTimeMs) {
+
+                            // This day is not the end of the entry, setting end of the day in this case
+                            if (!DateHelper.sameDates(entryStartTime, entryEndTime)) {
+                                entryEndTime = new Date(entryStartTime);
+                                entryEndTime.setHours(23, 59, 59, 999);
+                            }
+
+                            // Checking if entry start is in the weeks range, if it is it can be appended
+                            if (entryStartTimeMs >= weekStartMs && entryStartTimeMs <= weekEndMs &&
+                                !(this.nonWorkingDays.indexOf(entryStartTime.getDay()) >= 0 && this.nonWorkingHidden)) {
+
+                                var entry = new WeekEntry(
+                                    {
+                                        model:calEvent,
+                                        hourHeight:this.hourHeight,
+                                        startDateTime:entryStartTime,
+                                        endDateTime:entryEndTime,
+                                        el:this.options.entryTemplate
+                                    });
+
+                                // Adding event listener for selected event
+                                entry.on('focused', this._entry_focusedHandler, this);
+                                entry.on('contextMenu', this._entry_contextMenuHandler, this);
+                                entry.on('barMove', this._entry_barMoveHandler, this);
+                                entry.on('barMoveEnd', this._entry_barMoveEndHandler, this);
+
+                                // Adding event listeners for d&d events
+                                entry.on('draggingStart', this._entry_draggingStartHandler, this);
+                                entry.on('dragging', this._entry_draggingHandler, this);
+                                entry.on('drop', this._entry_dropHandler, this);
+
+                                var entryDay = entryStartTime.getDay();
+                                (entryDay == 0) ? entryDay = 6 : entryDay--;
+
+                                // Creating entries group array if necessary
+                                if (!dayEntries.hasOwnProperty(entryDay))
+                                    dayEntries[entryDay] = [];
+
+                                // adding entry to local associative array
+                                dayEntries[entryDay].push(entry.render().el);
+
+                                // Pushing entry component to the array
+                                this.entries.push(entry);
+                            }
+
+                            // Setting next day startDateTime
+                            entryStartTime = new Date(entryStartTime);
+                            entryStartTime.setTime(entryStartTime.getTime() + DateHelper.DAY_MS);
+                            entryStartTime.setHours(0, 0, 0, 0);
+                            entryStartTimeMs = entryStartTime.getTime();
+
+                            entryEndTime = new Date(calEvent.get('EndDateTime'));
+                        }
+
+                        // Adding created entries to the DOM
+                        for (var day in dayEntries)
+                            $(this.$days.children()[day]).append(dayEntries[day]);
+
+                        // Selecting event if it was previously selected
+                        if (calEvent == this.selectedEvent)
+                            this.selectEventEntries(calEvent);
+                    }
+                }
+            },
+
+            _updateCalEvent:{
+                value:function _updateCalEvent(calEvent) {
+                    this._removeCalEvent(calEvent);
+                    this._addCalEvent(calEvent);
+                }
+            },
+
+            _removeCalEvent:{
+                value:function _removeCalEvent(calEvent) {
+                    this.entries = this.entries.filter(function (entry) {
+                        var remove = entry.model == calEvent;
+                        if (remove)
+                            this._removeEntryEventHandlers(entry);
+                        return !remove;
+                    }, this);
+                }
+            },
+
+            _removeEntryEventHandlers:{
+                value:function _removeEntryEventHandlers(entry) {
+                    // Unregistering selected entry handlers
+                    entry.off('focused', this._entry_focusedHandler);
+                    entry.off('contextMenu', this._entry_contextMenuHandler);
+                    entry.off('barMove', this._entry_barMoveHandler);
+                    entry.off('barMoveEnd', this._entry_barMoveEndHandler);
+
+                    // Unregistering d&d entry handlers
+                    if (!entry.dragging) {
+                        entry.off('draggingStart', this._entry_draggingStartHandler);
+                        entry.off('dragging', this._entry_draggingHandler);
+                        entry.off('drop', this._entry_dropHandler);
+
+                        // Removing component from the DOM
+                        entry.remove();
+                    }
+                }
+            },
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Entry drag & drop functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            _entry_draggingStartHandler:{
+                value:function _entry_draggingStartHandler(event) {
+
+                    var entryModel = event.target.model,
+                        height = (entryModel.get('EndDateTime').getTime() - entryModel.get('StartDateTime').getTime()) /
+                            DateHelper.HOUR_MS * this.hourHeight;
+
+                    var ghostEntry = this._entry_draggingStartHandler.ghostEntry = event.target.$el.clone();
+                    ghostEntry.css({
+                        width:$(this.$days.children()[0]).width(),
+                        top:'none',
+                        bottom:'none',
+                        height:height,
+                        opacity:0.7
+                    });
+
+                    ghostEntry.appendTo(this.$scroller);
+                    ghostEntry.offset({left:event.pageX - event.offsetX, top:event.pageY - event.offsetY});
+
+                }
+            },
+
+            _entry_draggingHandler:{
+                value:function _entry_draggingHandler(event) {
+                    // Getting days offset
+                    var daysOffset = this.$days.offset(),
+
+                    // Day width, calculated based on first day
+                        dayWidth = this.$days.children().width(),
+
+                    // Calculated total days width
+                        daysWidth = dayWidth * this.$days.children().length;
+
+                    // Getting left and top based on dragging event params
+                    var left = event.pageX - event.offsetX,
+                        top = event.pageY - event.offsetY;
+
+                    if (event.pageX >= daysOffset.left && event.pageX <= daysOffset.left + daysWidth) {
+
+                        // Calculating day snapping
+                        var // Calculating day num
+                            dayNum = Math.floor((event.pageX - daysOffset.left) / dayWidth),
+
+                        // Getting day
+                            $day = $(this.$days.children()[dayNum]),
+
+                        // Day offset
+                            dayOffset = $day.offset(),
+
+                        // Day mid
+                            dayMid = dayOffset.left + (dayWidth / 2),
+
+                        // Touch point deviation from the middle of the entry
+                            deviation = (event.pageX - dayMid) / dayWidth;
+
+                        // entry left position
+                        left = dayOffset.left + dayWidth * 0.2 * deviation;
+
+                        // Restricting top value
+                        if (top < dayOffset.top)
+                            top = dayOffset.top;
+
+                        this._drawTimeChangeMarkers({time:this._getNearestTime((top - dayOffset.top))});
+
+                        // Reseting weekChanged flag
+                        this._entry_draggingHandler.weekChanged = false;
+
+                    } else {
+
+                        // User has to move back to days in order to make another week change
+                        if (!this._entry_draggingHandler.weekChanged) {
+
+                            // TODO: hiding is a hack because on devices removing element from a DOM which originates
+                            // the event stops subsequent events from firing
+                            event.target.$el.hide();
+                            event.target.$el.appendTo(this.$scroller);
+
+                            if (event.pageX < daysOffset.left)
+                                this.prev();
+                            else
+                                this.next();
+
+                            this._entry_draggingHandler.weekChanged = true;
+                        }
+                    }
+
+                    var ghostEntry = this._entry_draggingStartHandler.ghostEntry;
+                    ghostEntry.offset({left:left, top:top});
+                }
+            },
+
+            _entry_dropHandler:{
+                value:function _entry_dropHandler(event) {
+                    var ghostEntry = this._entry_draggingStartHandler.ghostEntry;
+
+                    // Removing dragged entry from the DOM
+                    ghostEntry.remove();
+
+                    // Clearing dragged entry
+                    this._entry_draggingStartHandler.ghostEntry = null;
+
+                    // Clearing markers
+                    this._clearTimeChangeMarkers();
+
+                    // Getting days offset
+                    var daysOffset = this.$days.offset(),
+
+                    // Day width, calculated based on first day
+                        dayWidth = this.$days.children().width(),
+
+                    // Calculated total days width
+                        daysWidth = dayWidth * this.$days.children().length;
+
+                    if (event.pageX >= daysOffset.left && event.pageX <= daysOffset.left + daysWidth) {
+
+                        var top = event.pageY - event.offsetY,
+
+                        // Calculating day num
+                            dayNum = Math.floor((event.pageX - daysOffset.left) / dayWidth),
+
+                        // Getting day
+                            $day = $(this.$days.children()[dayNum]),
+
+                        // Day offset
+                            dayOffset = $day.offset(),
+
+                        // Setting day date
+                            day = this.weekDays[dayNum];
+
+                        // Restricting top value
+                        if (top < dayOffset.top)
+                            top = dayOffset.top;
+
+                        var snappedStartTime = this._getNearestTime(top - dayOffset.top);
+
+                        var calEvent = event.target.model,
+                        // Entry start date time
+                            startDateTime = calEvent.get('StartDateTime'),
+                        // Entry end date time
+                            endDateTime = calEvent.get('EndDateTime'),
+                        // Entry duration
+                            duration = endDateTime.getTime() - startDateTime.getTime(),
+                        // New entry start and end
+                            newStartDateTime, newEndDateTime;
+
+                        newStartDateTime = new Date(day);
+                        newStartDateTime.setHours(
+                            snappedStartTime.getHours(),
+                            snappedStartTime.getMinutes(),
+                            snappedStartTime.getSeconds(),
+                            snappedStartTime.getMilliseconds()
+                        );
+
+                        // Calculating new end date time
+                        newEndDateTime = new Date(newStartDateTime.getTime() + duration);
+
+                        // Updating model with new dates
+                        calEvent.set({StartDateTime:newStartDateTime, EndDateTime:newEndDateTime});
+                    }
+
+                    // Forcing reflow, for some reason on iOS emulator it was required
+                    this.$el.width();
+                }
+            },
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Entries selection functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            _entry_focusedHandler:{
+                value:function _entry_focusedHandler(entry) {
+                    this.selectEventEntries(entry.model);
+                }
+            },
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Side bars markers
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            _drawTimeChangeMarkers:{
+                value:function _drawTimeChangeMarkers(changeInfo) {
+                    // Restoring previous markers
+                    var $markers = arguments.callee.markers;
+
+                    // Clearing previous markers
+                    arguments.callee.markers = null;
+                    // Setting previous markers font-weight to normal
+                    if ($markers && $markers.hasClass('hour-marker'))
+                        $markers.css('font-weight', '');
+                    // Removing previous minutes markers from DOM
+                    else if ($markers && $markers.hasClass('minutes-marker'))
+                        $markers.remove();
+
+                    if (changeInfo.time.getMinutes() == 0 || changeInfo.time.getMinutes() == 59) {
+
+                        var labelIndex = changeInfo.time.getMinutes() == 59 ? 24 : changeInfo.time.getHours();
+                        if (labelIndex == 0) {
+                            // TODO: implement 0:00 label
+                        } else if (labelIndex == 24) {
+                            // TODO: implement 24:00 label
+                        } else {
+                            $markers = $(this.$leftHours.children()[labelIndex]);
+                            $markers = $markers.add(this.$rightHours.children()[labelIndex]);
+                            $markers.css('font-weight', 'bold');
+                        }
+
+                    } else {
+
+                        // TODO:
+                        // Creating new marker
+                        $markers = $('<cj:Label class="minutes-marker"/>');
+                        // Cloning marker for the right side and adding it to $markers set
+                        $markers = $markers.add($markers.clone());
+
+                        // Appending left marker
+                        this.$leftHours.append($markers[0]);
+                        // Appending right marker
+                        this.$rightHours.append($markers[1]);
+
+                        // TODO: make date format configurable
+                        $markers.html(DateHelper.format(changeInfo.time, ':MM'));
+
+                        // Setting markers top position
+                        $markers.css('top',
+                            (changeInfo.time.getHours() + changeInfo.time.getMinutes() / 60) * this.hourHeight + 'px');
+                    }
+
+                    // Caching for next call
+                    arguments.callee.markers = $markers;
+                }
+            },
+
+            _clearTimeChangeMarkers:{
+                value:function _clearTimeChangeMarkers() {
+                    // Clearing hour:minutes markers
+                    var $markers = this._drawTimeChangeMarkers.markers;
+                    if ($markers) {
+                        // Nulling recent marker
+                        this._drawTimeChangeMarkers.markers = null;
+
+                        // Setting markers font-weight to normal
+                        if ($markers.hasClass('hour-marker'))
+                            $markers.css('font-weight', 'normal');
+                        // Removing minutes markers from DOM
+                        else if ($markers.hasClass('minutes-marker'))
+                            $markers.remove();
+                    }
+                }
+            },
+
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Entry resize functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            _entry_barMoveHandler:{
+                value:function _entry_barMoveHandler(event) {
+                    var offsetY = event.offsetY,
+                        entry = event.target;
+
+                    if (offsetY != 0) {
+                        // Calculating new height
+                        var newHeight = DateHelper.DAY_MS - (entry.entryTop + entry.entryBottom) + offsetY;
+
+                        // New snapped time
+                        var timeChange;
+
+                        if (event.bar == 'bottom') {
+                            var newBottom = entry.entryBottom - offsetY;
+                            if (newBottom >= 0 && newBottom + (this.hourHeight / 2) <= (24 * this.hourHeight - entry.entryTop)) {
+                                entry.entryBottom = newBottom;
+                                entry.$el.css({bottom:entry.entryBottom + 'px'});
+
+                                timeChange = this._getSnappedTime(event.bar, entry);
+                            }
+                        } else {
+                            var newTop = entry.entryTop + offsetY;
+                            if (newTop >= 0 && newTop + (this.hourHeight / 2) <= (24 * this.hourHeight - entry.entryBottom)) {
+                                entry.entryTop = newTop;
+                                entry.$el.css({top:entry.entryTop + 'px'});
+
+                                timeChange = this._getSnappedTime(event.bar, entry);
+                            }
+                        }
+
+                        if (timeChange) {
+                            if (!arguments.callee.timeChange || timeChange.getTime() != arguments.callee.timeChange.getTime())
+                                this._drawTimeChangeMarkers({time:timeChange, bar:event.bar, target:entry});
+
+                            arguments.callee.timeChange = timeChange;
+                        }
+                    }
+                }
+            },
+
+            _entry_barMoveEndHandler:{
+                value:function _entry_barMoveEndHandler(event) {
+                    console.log('');
+                    var entry = event.target;
+
+                    var snappedTime = this._getSnappedTime(event.bar, entry);
+                    var modelUpdate;
+                    if (event.bar == 'bottom') {
+                        entry.endDateTime = snappedTime;
+                        modelUpdate = {EndDateTime:snappedTime};
+                    } else {
+                        entry.startDateTime = snappedTime;
+                        modelUpdate = {StartDateTime:snappedTime};
+                    }
+
+                    entry.measure();
+                    entry.$el.css({top:entry.entryTop + 'px', bottom:entry.entryBottom + 'px'});
+                    entry.model.set(modelUpdate);
+
+                    this._clearTimeChangeMarkers();
+                }
+            },
+
+            _getSnappedTime:{
+                value:function _getSnappedTime(bar, entry) {
+                    var that = entry;
+                    var startingDateTime = bar == 'bottom' ? that.endDateTime : that.startDateTime,
+                        startingPosition = bar == 'bottom' ? (24 * that.hourHeight - that.entryBottom) : that.entryTop;
+
+                    var snappedHour = this._getNearestTime(startingPosition),
+                        result = new Date(startingDateTime);
+                    result.setHours(
+                        snappedHour.getHours(),
+                        snappedHour.getMinutes(),
+                        snappedHour.getSeconds(),
+                        snappedHour.getMilliseconds()
+                    );
+
+                    return result;
+                }
+            },
+
+            _getNearestTime:{
+                value:function _getNearestTime(from) {
+                    var that = this;
+                    var hour = from / that.hourHeight * DateHelper.HOUR_MS,
+                        modMs = hour % (DateHelper.HOUR_MS * 0.25);
+
+                    if (modMs > 7.5 * DateHelper.MINUTE_MS)
+                        hour = hour - modMs + 15 * DateHelper.MINUTE_MS;
+                    else
+                        hour = hour - modMs;
+
+                    var result = new Date(hour);
+                    // Converting to locale aware date
+                    result.setHours(result.getUTCHours(),
+                        result.getUTCMinutes(),
+                        result.getUTCMinutes(),
+                        result.getUTCMilliseconds());
+
+                    // If snap is before 0:00 time
+                    if (result.getMonth() > 1)
+                        result.setTime(0);
+                    // If snap is after 23:59:59:999
+                    else if (result.getDate() > 1)
+                        result.setTime(result.getTime() - 1);
+
+                    return result;
+                }
+            },
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Context menu functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            _entry_contextMenuHandler:{
+                value:function _entry_contextMenuHandler(entry) {
+                    // Bubbling up
+                    this.trigger('contextMenu', entry);
+                }
+            }
+        });
+
+        return WeekView;
+    });
+define('text!MonthEntry.tpl!strip',[],function () { return '<cj:MonthEntry>\n    <cj:ColorBar/>\n    <cj:Content>\n        <cj:Label class="month-entry-title"></cj:Label>\n        <cj:Label class="month-entry-start-time"></cj:Label>\n    </cj:Content>\n</cj:MonthEntry>\n\n';});
+
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 7/3/12
+ * Time: 11:49 AM
+ */
+
+define('MonthEntry',['EntryBase', 'utils/DateHelper', 'text!MonthEntry.tpl!strip'],
+    function (EntryBase, DateHelper, MonthEntryTemplate) {
+
+        var MonthEntry = function MonthEntry(options) {
+
+            if (!options.el) options.el = MonthEntryTemplate;
+
+            EntryBase.call(this, options);
+
+            this.$colorBar = this.$('cj\\:ColorBar');
+
+            this.$titleLabel = this.$('cj\\:Label.month-entry-title');
+
+            this.$startTime = this.$('cj\\:Label.month-entry-start-time');
+
+            this.model.on('change', this._model_changeHandler, this);
+        }
+
+        MonthEntry.prototype = Object.create(EntryBase.prototype, {
+            render:{
+                value:function () {
+
+                    this.$colorBar.css('background-color', this.model.get('Color'));
+                    this.$titleLabel.html(this.model.get('Title'));
+                    this.$startTime.html(DateHelper.format(this.model.get('StartDateTime'), 'HH:MM TT'));
+
+                    return this;
+                }
+            },
+
+            _model_changeHandler:{
+                value:function () {
+                    this.render();
+                }
+            }
+        });
+        return MonthEntry;
+    });
+/**
+ * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
+ *
+ * User: pwalczys
+ * Date: 5/29/12
+ * Time: 1:06 PM
+ */
+
+define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, MonthEntry, DateHelper) {
+
+    var MonthView = function (options) {
+
         // Setting WeekView template as a root element
-        options.el = WeekViewTpl;
+        options.el = '<cj:MonthView/>';
+
+        // Initializing model if it's not set
+        if (!options.collection) options.collection = [];
+
         // Calling parent constructor
         Component.call(this, options);
 
-        // Setting current WeekView date
-        this.date = options.date;
+        /**
+         * A date to be displayed within the month
+         */
+        this.date = options.date ? options.date : new Date;
+
+        /**
+         * Flag indicating to show or hide non-working days
+         */
+        this.nonWorkingHidden = options.nonWorkingHidden ? options.nonWorkingHidden : false;
+
+        /**
+         * Array of non-working days, based on Date.day index
+         */
+        this.nonWorkingDays = options.nonWorkingDays ? options.nonWorkingDays : [0, 6];
+
+        /**
+         * Date.day index of week start
+         */
+        this.weekStartDay = options.weekStartDay ? options.weekStartDay : 1;
+
+        /**
+         * MonthView date range start
+         */
+        this.rangeStartDate = null;
+
+        /**
+         * MonthView date range end
+         */
+        this.rangeEndDate = null;
+
+        /**
+         * Map of $day objects, the key is a beginning of a day (0:00) in ms
+         */
+        this.days = {}; // <dayMs, $day>
+
+        /**
+         * Entries in the current range
+         */
+        this.entries = [];
+
+        /**
+         * Currently selected SFEvent
+         */
+        this.selectedEvent = null;
+
+        this.collection.on('add', this._collection_addHandler, this);
+        this.collection.on('remove', this._collection_removeHandler, this);
+        this.collection.on('change', this._collection_changeHandler, this);
     };
-    WeekView.prototype = Object.create(Component.prototype);
 
-    WeekView.prototype.render = function () {
-        return this;
-    };
+    MonthView.prototype = Object.create(Component.prototype, {
+        _collection_addHandler:{
+            value:function _collection_addHandler(calEvent) {
+                this._addCalEvent(calEvent);
+            }
+        },
 
-    return WeekView;
-});
-/**
- * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
- *
- * User: pwalczys
- * Date: 5/29/12
- * Time: 1:06 PM
- */
+        _collection_removeHandler:{
+            value:function _collection_removeHandler(calEvent) {
+                this._removeCalEvent(calEvent);
+            }
+        },
 
-define('MonthView',['Component'], function (Component) {
+        _collection_changeHandler:{
+            value:function _collection_changeHandler(calEvent) {
+                if (calEvent.hasChanged('StartDateTime') || calEvent.hasChanged('EndDateTime'))
+                    this._updateCalEvent(calEvent);
+            }
+        },
 
-    var MonthView = function (options) {
-        Component.call(this, options);
-    };
-    MonthView.prototype = Object.create(Component.prototype);
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // MonthView navigation functions
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    MonthView.prototype.render = function () {
+        showDate:{
+            value:function (date) {
+                this.date = date;
+                this.updateView();
+            }
+        },
 
-        return this;
-    };
+        next:{
+            value:function () {
+                var nextDate = new Date(this.date);
+                nextDate.setDate(1);
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                this.showDate(nextDate);
 
+                this.trigger('rangeChanged');
+            }
+        },
+
+        prev:{
+            value:function () {
+                var nextDate = new Date(this.date);
+                nextDate.setDate(1);
+                nextDate.setMonth(nextDate.getMonth() - 1);
+                this.showDate(nextDate);
+
+                this.trigger('rangeChanged');
+            }
+        },
+
+        toggleNonWorking:{
+            value:function () {
+                this.nonWorkingHidden = !this.nonWorkingHidden;
+                this.updateView();
+            }
+        },
+
+        updateView:{
+            value:function () {
+                // Setting week range dates
+                this._setRangeDates();
+
+                // Drawing background grid based on current hour height
+                this._drawCalendarGrid();
+
+                // Adding weeks entries
+                this._addCalEvents();
+            }
+        },
+
+        /**
+         * Sets the MonthView start and end dates
+         */
+        _setRangeDates:{
+            value:function () {
+                var monthStartDate = new Date(this.date);
+                monthStartDate.setDate(1);
+                monthStartDate.setHours(0, 0, 0, 0);
+
+                if (monthStartDate.getDay() < this.weekStartDay)
+                    monthStartDate.setDate(monthStartDate.getDate() + (this.weekStartDay - monthStartDate.getDay()) - 7);
+                else
+                    monthStartDate.setDate(monthStartDate.getDate() + (this.weekStartDay - monthStartDate.getDay()));
+
+                this.rangeStartDate = monthStartDate;
+
+                var monthEndDate = new Date(this.date);
+                monthEndDate.setHours(0, 0, 0, 0);
+                monthEndDate.setMonth(monthEndDate.getMonth() + 1);
+                monthEndDate.setDate(1);
+                monthEndDate.setTime(monthEndDate.getTime() - 1);
+
+                // Calculating week day index based on weekStartDay variable
+                var weekEndDay = this.weekStartDay == 1 ? 0 : this.weekStartDay - 1;
+
+                if (monthEndDate.getDay() != weekEndDay) {
+                    if (weekEndDay == 0)
+                        monthEndDate.setDate(monthEndDate.getDate() + (7 - monthEndDate.getDay()));
+                    else
+                        monthEndDate.setDate(monthEndDate.getDate() + (7 - (monthEndDate.getDay() + (7 - weekEndDay))));
+                }
+
+                this.rangeEndDate = monthEndDate;
+            }
+        },
+
+        _drawCalendarGrid:{
+            value:function () {
+
+                delete this.days;
+                this.days = {};
+
+                var cellDate = new Date(this.rangeStartDate),
+                    today = new Date,
+                    $week,
+                    $day,
+                    $weeks,
+                    columnWidth = this.nonWorkingHidden ? 100 / (7 - this.nonWorkingDays.length) : 100 / 7;
+
+                while (cellDate.getTime() < this.rangeEndDate.getTime()) {
+
+                    if (!this.nonWorkingHidden || (this.nonWorkingHidden
+                        && this.nonWorkingDays.indexOf(cellDate.getDay()) == -1)) {
+
+                        if (this.weekStartDay == cellDate.getDay()) {
+                            $week = $('<cj:MonthWeek/>');
+                            if (!$weeks)
+                                $weeks = $week;
+                            else
+                                $weeks = $weeks.add($week);
+                        }
+
+                        var labelFormat = $weeks.length == 1 ? 'ddd. dd' : 'dd',
+                            isCurrentMonth = this.date.getMonth() == cellDate.getMonth(),
+                            isToday = DateHelper.sameDates(cellDate, today);
+
+                        // Creating new $day element
+                        $day = $('<cj:MonthDay/>').attr({
+                            style:'width: ' + columnWidth + '%',
+                            current:isCurrentMonth,
+                            today:isToday
+                        });
+                        $day.html($('<cj:MonthDayLabel />').html(DateHelper.format(cellDate, labelFormat)));
+
+                        // Adding $day to a $week set
+                        $week.append($day);
+
+                        // Assigning $day to its date time
+                        this.days[cellDate.getTime()] = $day;
+
+                    }
+
+                    // Incrementing cell date
+                    cellDate.setDate(cellDate.getDate() + 1);
+                }
+
+                this.$el.empty();
+                $weeks.attr('style', 'height: ' + 100 / $weeks.length + '%');
+                this.$el.append($weeks.toArray());
+            }
+        },
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // CalEvent handling functions
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        _addCalEvents:{
+            value:function () {
+                // Removing all previous entries
+                this.entries.forEach(this._removeEntryEventHandlers, this);
+
+                // Clearing entries array
+                this.entries.length = 0;
+
+                // Adding model entries
+                this.collection.forEach(this._addCalEvent, this);
+            }
+        },
+
+        _addCalEvent:{
+            value:function (calEvent) {
+
+                var rangeStartMs = this.rangeStartDate.getTime(),
+                    rangeEndMs = this.rangeEndDate.getTime();
+
+                var entryStartTime = new Date(calEvent.get('StartDateTime')),
+                    entryStartTimeMs = entryStartTime.getTime(),
+                    entryEndTime = new Date(calEvent.get('EndDateTime')),
+                    entryEndTimeMs = entryEndTime.getTime();
+
+                if (entryStartTimeMs >= rangeStartMs && entryStartTimeMs <= rangeEndMs ||
+                    entryEndTimeMs >= rangeStartMs && entryEndTimeMs <= rangeEndMs) {
+
+                    // Array of entries grouped by day
+                    var dayEntries = {};
+
+                    while (entryStartTimeMs <= entryEndTimeMs) {
+
+                        // Checking if entry start is in the weeks range, if it is it can be appended
+                        if (entryStartTimeMs >= rangeStartMs && entryStartTimeMs <= rangeEndMs &&
+                            !(this.nonWorkingDays.indexOf(entryStartTime.getDay()) >= 0 && this.nonWorkingHidden)) {
+
+                            // Setting entry date to the beginning of entry start time
+                            var entryDate = new Date(entryStartTime);
+                            entryDate.setHours(0, 0, 0, 0);
+
+                            // Creating new entry
+                            var entry = new MonthEntry({model:calEvent, date:entryDate});
+
+                            // Adding event listener for selected event
+                            entry.on('focused', this._entry_focusedHandler, this);
+                            entry.on('contextMenu', this._entry_contextMenuHandler, this);
+
+                            // Creating entries group array if necessary
+                            if (!dayEntries.hasOwnProperty(entryDate.getTime()))
+                                dayEntries[entryDate.getTime()] = [];
+
+                            // adding entry to local associative array
+                            dayEntries[entryDate.getTime()].push(entry.render().el);
+
+                            // Pushing entry component to the array
+                            this.entries.push(entry);
+                        }
+
+                        // Setting next day startDateTime
+                        entryStartTime = new Date(entryStartTime);
+                        entryStartTime.setHours(0, 0, 0, 0);
+                        entryStartTime.setDate(entryStartTime.getDate() + 1);
+                        entryStartTimeMs = entryStartTime.getTime();
+                    }
+
+                    // Adding created entries to the DOM
+                    for (var day in dayEntries)
+                        this.days[day].append(dayEntries[day]);
+
+                    // Selecting event if it was previously selected
+                    if (calEvent == this.selectedEvent)
+                        this.selectEventEntries(calEvent);
+
+                }
+            }
+        },
+
+        _updateCalEvent:{
+            value:function (calEvent) {
+                this._removeCalEvent(calEvent);
+                this._addCalEvent(calEvent);
+            }
+        },
+
+        _removeCalEvent:{
+            value:function (calEvent) {
+                this.entries = this.entries.filter(function (entry) {
+                    var remove = entry.model == calEvent;
+                    if (remove)
+                        this._removeEntryEventHandlers(entry);
+                    return !remove;
+                }, this);
+            }
+        },
+
+        _removeEntryEventHandlers:{
+            value:function (entry) {
+                // Unregistering selected entry handlers
+                entry.off('focused', this._entry_focusedHandler);
+                entry.off('contextMenu', this._entry_contextMenuHandler);
+
+                entry.remove();
+            }
+        },
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Entries selection functions
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        _entry_focusedHandler:{
+            value:function (entry) {
+                this.selectEventEntries(entry.model);
+            }
+        },
+
+        selectEventEntries:{
+            value:function (calEvent) {
+                this.entries.forEach(function (entry) {
+
+                    if (calEvent == entry.model)
+                        entry.select();
+                    else if (entry.model == this.selectedEvent)
+                        entry.unselect();
+
+                }, this);
+
+                this.selectedEvent = calEvent;
+            }
+        },
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Context menu functions
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        _entry_contextMenuHandler:{
+            value:function _entry_contextMenuHandler(entry) {
+                // Bubbling up
+                this.trigger('contextMenu', entry);
+            }
+        }
+    });
     return MonthView;
 });
-define('text!Calendar.tpl!strip',[],function () { return '<cj:Calendar xmlns:cj="http://caljs.org/1.0">\n    <cj:NavigationBar>\n\n        <cj:NavigationBarLeft>\n            <cj:Button class="btn-prev up"/>\n            <cj:RangeLabel/>\n        </cj:NavigationBarLeft>\n\n        <cj:NavigationBarRight>\n\n        </cj:NavigationBarRight>\n    </cj:NavigationBar>\n</cj:Calendar>';});
+define('text!Calendar.tpl!strip',[],function () { return '<cj:Calendar xmlns:cj="http://caljs.org/1.0">\n    <cj:NavigationBar>\n        <cj:NavigationBarLeft>\n            <cj:Button class="btn-prev up"/>\n            <cj:RangeLabel/>\n        </cj:NavigationBarLeft>\n\n        <cj:NavigationBarRight>\n            <cj:Button class="btn-toggle-non-working txt up">Toggle Sat/Sun</cj:Button>\n            <cj:Button class="btn-week-view down" name="cal-views"/>\n            <cj:Button class="btn-month-view up" name="cal-views"/>\n            <cj:Button class="btn-next up"/>\n        </cj:NavigationBarRight>\n    </cj:NavigationBar>\n</cj:Calendar>';});
 
-/**
- * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
- *
- * User: pwalczys
- * Date: 2/22/12
- * Time: 3:50 PM
- */
-
-define('utils/DateHelper',[],function () {
-
-    var DateHelper = function () {
-    }
-
-    DateHelper.toISO8601 = function (date) {
-        var year = date.getUTCFullYear();
-        var month = date.getUTCMonth() + 1;
-        var day = date.getUTCDate();
-        var hours = date.getHours();
-        var minutes = date.getMinutes();
-        var seconds = date.getSeconds();
-
-        month = ( month < 10 ) ? '0' + month : month;
-        day = ( day < 10 ) ? '0' + day : day;
-        hours = ( hours < 10 ) ? '0' + hours : hours;
-        minutes = ( minutes < 10 ) ? '0' + minutes : minutes;
-        seconds = ( seconds < 10 ) ? '0' + seconds : seconds;
-
-        var tzOffsetSign = "-";
-        var tzOffset = date.getTimezoneOffset();
-        if (tzOffset < 0) {
-            tzOffsetSign = "+";
-            tzOffset = -tzOffset;
-        }
-        var tzOffsetMinutes = tzOffset % 60;
-        var tzOffsetHours = (tzOffset - tzOffsetMinutes) / 60;
-        var tzOffsetMinutesStr = tzOffsetMinutes < 10 ? "0" + tzOffsetMinutes : "" + tzOffsetMinutes;
-        var tzOffsetHoursStr = tzOffsetHours < 10 ? "0" + tzOffsetHours : "" + tzOffsetHours;
-        return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes + ':' + seconds + ".000" + tzOffsetSign + "" + tzOffsetHoursStr + "" + tzOffsetMinutesStr;
-
-    }
-
-    DateHelper.parseISO8601 = function (string) {
-        if ((string == null) || (string == "")) return null;
-        var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
-            "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +
-            "(Z|(([-+])([0-9]{2})([0-9]{2})))?)?)?)?";
-        var d = string.match(new RegExp(regexp));
-        var offset = 0;
-        var date = new Date(d[1], 0, 1);
-
-        if (d[3]) {
-            date.setMonth(d[3] - 1);
-        }
-        if (d[5]) {
-            date.setDate(d[5]);
-        }
-        if (d[7]) {
-            date.setHours(d[7]);
-        }
-        if (d[8]) {
-            date.setMinutes(d[8]);
-        }
-        if (d[10]) {
-            date.setSeconds(d[10]);
-        }
-        if (d[12]) {
-            date.setMilliseconds(Number("0." + d[12]) * 1000);
-        }
-        if (d[14]) {
-            offset = (Number(d[16]) * 60) + Number(d[17]);
-            offset = ((d[15] == '-') ? offset : -offset);
-        }
-        offset = offset - (date.getTimezoneOffset());
-        date.setTime(date.getTime() + offset * 60 * 1000);
-        return date;
-    }
-
-
-    var addDays = DateHelper.addDays = function (date, days) {
-        var result = new Date(date);
-        result.setDate(date.getDate() + days);
-        return result;
-    };
-
-    var firstDayOfWeek = DateHelper.firstDayOfWeek = function (date) {
-        var day = date.getDay();
-        day = (day == 0) ? -6 : day - 1;
-        return addDays(date, -day);
-    };
-
-    var hoursInMs = DateHelper.hoursInMs = function (date) {
-        return date.getHours() * 60 * 60 * 1000
-            + date.getMinutes() * 60 * 1000
-            + date.getSeconds() * 1000
-            + date.getMilliseconds();
-    };
-
-    var sameDates = DateHelper.sameDates = function (date1, date2) {
-        return date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth()
-            && date1.getDate() == date2.getDate();
-    };
-
-    var lastDayOfWeek = DateHelper.lastDayOfWeek = function (date) {
-        var day = date.getDay();
-        (day == 0) || (day = 7 - day);
-        return addDays(date, day);
-    };
-
-    var nextWeekFirstDay = DateHelper.nextWeekFirstDay = function (date) {
-        return addDays(firstDayOfWeek(date), 7);
-    };
-
-    var prevWeekFirstDay = DateHelper.prevWeekFirstDay = function (date) {
-        return addDays(firstDayOfWeek(date), -7);
-    };
-
-    var nextMonthFirstDay = DateHelper.nextMonthFirstDay = function (date) {
-        var result = new Date(date);
-        result.setMonth(date.getMonth() + 1, 1);
-        return result;
-    };
-
-    var prevMonthFirstDay = DateHelper.prevMonthFirstDay = function (date) {
-        var result = new Date(date);
-        result.setMonth(date.getMonth() - 1, 1);
-        return result;
-    };
-
-
-    /*
-     * Date Format 1.2.3
-     * (c) 2007-2009 Steven Levithan <stevenlevithan.com>
-     * MIT license
-     *
-     * Includes enhancements by Scott Trenda <scott.trenda.net>
-     * and Kris Kowal <cixar.com/~kris.kowal/>
-     *
-     * Accepts a date, a mask, or a date and a mask.
-     * Returns a formatted version of the given date.
-     * The date defaults to the current date/time.
-     * The mask defaults to dateFormat.masks.default.
-     */
-    var format = DateHelper.format = function () {
-        var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
-            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
-            timezoneClip = /[^-+\dA-Z]/g,
-            pad = function (val, len) {
-                val = String(val);
-                len = len || 2;
-                while (val.length < len) val = "0" + val;
-                return val;
-            };
-
-        // Regexes and supporting functions are cached through closure
-        return function (date, mask, utc) {
-            var dF = format;
-
-            // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
-            if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
-                mask = date;
-                date = undefined;
-            }
-
-            // Passing date through Date applies Date.parse, if necessary
-            date = date ? new Date(date) : new Date;
-            if (isNaN(date)) throw SyntaxError("invalid date");
-
-            mask = String(dF.masks[mask] || mask || dF.masks["default"]);
-
-            // Allow setting the utc argument via the mask
-            if (mask.slice(0, 4) == "UTC:") {
-                mask = mask.slice(4);
-                utc = true;
-            }
-
-            var _ = utc ? "getUTC" : "get",
-                d = date[_ + "Date"](),
-                D = date[_ + "Day"](),
-                m = date[_ + "Month"](),
-                y = date[_ + "FullYear"](),
-                H = date[_ + "Hours"](),
-                M = date[_ + "Minutes"](),
-                s = date[_ + "Seconds"](),
-                L = date[_ + "Milliseconds"](),
-                o = utc ? 0 : date.getTimezoneOffset(),
-                flags = {
-                    d:d,
-                    dd:pad(d),
-                    ddd:dF.i18n.dayNames[D],
-                    dddd:dF.i18n.dayNames[D + 7],
-                    m:m + 1,
-                    mm:pad(m + 1),
-                    mmm:dF.i18n.monthNames[m],
-                    mmmm:dF.i18n.monthNames[m + 12],
-                    yy:String(y).slice(2),
-                    yyyy:y,
-                    h:H % 12 || 12,
-                    hh:pad(H % 12 || 12),
-                    H:H,
-                    HH:pad(H),
-                    M:M,
-                    MM:pad(M),
-                    s:s,
-                    ss:pad(s),
-                    l:pad(L, 3),
-                    L:pad(L > 99 ? Math.round(L / 10) : L),
-                    t:H < 12 ? "a" : "p",
-                    tt:H < 12 ? "am" : "pm",
-                    T:H < 12 ? "A" : "P",
-                    TT:H < 12 ? "AM" : "PM",
-                    Z:utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
-                    o:(o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
-                    S:["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
-                };
-
-            return mask.replace(token, function ($0) {
-                return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
-            });
-        };
-    }();
-
-    // Some common format strings
-    format.masks = {
-        "default":"ddd mmm dd yyyy HH:MM:ss",
-        shortDate:"m/d/yy",
-        mediumDate:"mmm d, yyyy",
-        longDate:"mmmm d, yyyy",
-        fullDate:"dddd, mmmm d, yyyy",
-        shortTime:"h:MM TT",
-        mediumTime:"h:MM:ss TT",
-        longTime:"h:MM:ss TT Z",
-        isoDate:"yyyy-mm-dd",
-        isoTime:"HH:MM:ss",
-        isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",
-        isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
-    };
-
-    // Internationalization strings
-    format.i18n = {
-        dayNames:[
-            "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
-            "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-        ],
-        monthNames:[
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
-            "November", "December"
-        ]
-    };
-
-    return DateHelper;
-});
 /**
  * Created by Piotr Walczyszyn (outof.me | @pwalczyszyn)
  *
@@ -1099,7 +2724,7 @@ define('utils/TouchButtons',[],function () {
             // Detecting if this is left mouse button
             if ((isTouch && event.originalEvent.touches.length == 1) || (!isTouch && event.which == 1)) {
 
-                $el.removeClass('up down').addClass('active');
+                $el.addClass('active');
 
                 $(document).on(MOUSE_UP, function (event) {
                     event.preventDefault();
@@ -1111,7 +2736,7 @@ define('utils/TouchButtons',[],function () {
                     $el.removeClass('active');
 
                     var groupName = $el.attr('name'),
-                        groupButtons = groupName ? $("jc\\:Button[name='" + groupName + "']") : null;
+                        groupButtons = groupName ? $("cj\\:Button[name='" + groupName + "']") : null;
 
                     if (groupButtons) {
 
@@ -1172,6 +2797,9 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
     function (Component, WeekView, MonthView, CalendarTpl, DateHelper) {
 
         var Calendar = function (options) {
+
+            this.RESIZE_EV = 'onorientationchange' in window ? 'orientationchange' : 'resize';
+
             // If el is not specified by the user using div as parent element
             if (!options) options = {el:'<div/>'};
 
@@ -1202,152 +2830,316 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
              */
             this.date = options && options.date ? options.date : new Date;
 
+            this.windowHeight = null;
+        };
+
+        Calendar.RANGE_CHANGED = 'rangeChanged';
+
+        Calendar.CONTEXT_MENU = 'contextMenu';
+
+        Calendar.prototype = Object.create(Component.prototype, {
             /**
              * Overriding render function from Component type.
              *
              * @return {Calendar}
              */
-            this.render = function render() {
-                // Creating $calendar DOM
-                this.$calendar = $(CalendarTpl);
-                // Registering $calendar event handlers
-                this.$calendar.on('tbclick  cj\\:Button.btn-prev', prevBtn_clickHandler);
+            render:{
+                value:function render() {
+                    // Creating $calendar DOM
+                    this.$calendar = $(CalendarTpl);
 
-                // Creating WeekView as initial current view
-                this.weekView = this.currentView = new WeekView({model:this.model, date:this.date});
-                // Adding range changed handler
-                this.weekView.on(Calendar.RANGE_CHANGED, currentView_rangeChangedHandler, this);
-                // Adding context menu handler
-                this.weekView.on(Calendar.CONTEXT_MENU, currentView_contextMenuHandler, this);
-                // Adding mouse or touch down event handler
-                this.weekView.$el.on(this.MOUSE_DOWN_EV, this.bindHandler(container_mouseDownHandler, this));
+                    // Registering $calendar event handlers
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-prev', this.bind(this._prevBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-next', this.bind(this._nextBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-week-view', this.bind(this._weekBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-month-view', this.bind(this._monthBtn_clickHandler, this));
+                    this.$calendar.on('tbclick', 'cj\\:Button.btn-toggle-non-working', this.bind(this._toggleBtn_clickHandler, this));
 
-                // Appending current view to the DOM
-                this.$calendar.append(this.currentView.el);
-                // Rendering current view
-                this.currentView.render();
+                    // Creating WeekView as initial current view
+                    this.weekView = this.currentView = new WeekView({
+                        collection:this.collection,
+                        date:this.date,
+                        entryTemplate:this.options.weekEntryTemplate
+                    });
+                    // Adding range changed handler
+                    this.weekView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
+                    // Adding context menu handler
+                    this.weekView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
+                    // Adding mouse or touch down event handler
+                    this.weekView.$el.on(this.MOUSE_DOWN_EV, this.bind(this._container_mouseDownHandler, this));
 
-                // Updating calendar period label
-                updateCurrentPeriodLabel.call(this);
+                    // Appending current view to the DOM
+                    this.$calendar.append(this.currentView.el);
+                    // Rendering current view
+                    this.currentView.render();
 
-                // Adding whole calendar to the DOM
-                this.$el.html(this.$calendar);
+                    // Updating calendar period label
+                    this._updateCurrentPeriodLabel();
 
-                return this;
-            };
+                    // Adding whole calendar to the DOM
+                    this.$el.html(this.$calendar);
+
+                    return this;
+                }
+            },
+
+            _resize:{
+                value:function _resize(event) {
+                    var that = event.data.context;
+                    if (that.windowHeight != window.innerHeight)
+                        that.currentView.updateView.call(that.currentView);
+
+                    that.windowHeight = window.innerHeight;
+                }
+            },
+
+            activate:{
+                value:function activate() {
+                    this.windowHeight = window.innerHeight;
+                    $(window).on(this.RESIZE_EV, {context:this}, this._resize);
+                    this.currentView.updateView();
+                }
+            },
+
+            deactivate:{
+                value:function deactivate() {
+                    $(window).off(this.RESIZE_EV, this._resize);
+                    this.currentView.deactivateView();
+                }
+            },
+
+            _weekBtn_clickHandler:{
+                value:function _weekBtn_clickHandler() {
+                    if (this.currentView != this.weekView) {
+                        // Detaching existing view
+                        this.currentView.$el.detach();
+
+                        // Changing current view reference
+                        this.currentView = this.weekView;
+
+                        // Appending current view to the DOM
+                        this.$calendar.append(this.currentView.el);
+
+                        // Updating date to display in current view
+                        this.currentView.showDate(this.date);
+
+                        // Dispatching viewChanged event
+                        this.trigger('viewChanged', {viewName:'WeekView'});
+                    }
+                }
+            },
+
+            _monthBtn_clickHandler:{
+                value:function _monthBtn_clickHandler() {
+                    if (this.currentView != this.monthView) {
+
+                        // Doing lazy initialization of the month view
+                        if (!this.monthView) {
+                            this.monthView = new MonthView({collection:this.collection, date:this.date});
+                            this.monthView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
+                            this.monthView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
+                            // Registering handler for container gesture events
+                            this.monthView.$el.on(this.MOUSE_DOWN_EV, {context:this}, this._container_mouseDownHandler);
+                            this.monthView.render();
+                        }
+
+                        // Detaching existing view
+                        this.currentView.$el.detach();
+
+                        // Changing current view reference
+                        this.currentView = this.monthView;
+
+                        // Appending current view to the DOM
+                        this.$calendar.append(this.currentView.el);
+
+                        // Updating date to display in current view
+                        this.currentView.showDate(this.date);
+
+                        // Dispatching viewChanged event
+                        this.trigger('viewChanged', {viewName:'MonthView'});
+                    }
+                }
+            },
+
+            _prevBtn_clickHandler:{
+                value:function _prevBtn_clickHandler() {
+                    this.currentView.prev();
+                }
+            },
+
+            _nextBtn_clickHandler:{
+                value:function _nextBtn_clickHandler() {
+                    this.currentView.next();
+                }
+            },
 
             /**
              * Updates RangeLabel content based on currentView.date value.
              *
              * @private
              */
-            function updateCurrentPeriodLabel() {
-                var label;
-                if (this.currentView instanceof WeekView) {
-                    var weekStart = DateHelper.firstDayOfWeek(this.currentView.date);
-                    var weekEnd = DateHelper.lastDayOfWeek(this.currentView.date);
+            _updateCurrentPeriodLabel:{
+                value:function _updateCurrentPeriodLabel() {
+                    var label;
+                    if (this.currentView instanceof WeekView) {
+                        var weekStart = DateHelper.firstDayOfWeek(this.currentView.date);
+                        var weekEnd = DateHelper.lastDayOfWeek(this.currentView.date);
 
-                    if (weekStart.getMonth() == weekEnd.getMonth())
-                        label = DateHelper.format(weekStart, 'mmmm yyyy');
-                    else
-                        label = DateHelper.format(weekStart, 'mmmm') + ' - '
-                            + DateHelper.format(weekEnd, 'mmmm yyyy');
+                        if (weekStart.getMonth() == weekEnd.getMonth())
+                            label = DateHelper.format(weekStart, 'mmmm yyyy');
+                        else
+                            label = DateHelper.format(weekStart, 'mmmm') + ' - '
+                                + DateHelper.format(weekEnd, 'mmmm yyyy');
 
-                } else {
-                    label = DateHelper.format(this.currentView.date, 'mmmm yyyy');
+                    } else {
+                        label = DateHelper.format(this.currentView.date, 'mmmm yyyy');
+                    }
+
+                    this.$calendar.find('cj\\:RangeLabel').html(label);
                 }
-
-                this.$calendar.find('cj\\:RangeLabel').html(label);
-            }
+            },
 
             /**
-             * Displayes popup message when dates range is changed.
+             * Displays popup message when dates range is changed.
              *
              * @private
              */
-            function showRangeChangeMessage() {
+            _showRangeChangeMessage:{
+                value:function _showRangeChangeMessage() {
+                    // Setting displayed message text
+                    var messageText = DateHelper.format(this.currentView.rangeStartDate, "mmm d") + ' - '
+                        + DateHelper.format(this.currentView.rangeEndDate, "mmm d");
 
-                // Setting displayed message text
-                var messageText = DateHelper.format(this.currentView.rangeStartDate, "mmm d") + ' - '
-                    + DateHelper.format(this.currentView.rangeEndDate, "mmm d");
+                    // Creating message div
+                    var message = $('<cj:RangeChangeMessage/>').html(messageText).appendTo(this.$calendar);
 
-                // Creating message div
-                var message = $('<div/>')
-                    .html(messageText)
-                    .addClass('range-change-message')
-                    .appendTo(this.$el);
+                    // Positioning message
+                    var messagePosition = {
+                        top:this.$calendar.height() / 2 - (message.height() / 2),
+                        left:this.$calendar.width() / 2 - (message.width() / 2)
+                    };
 
-                // Positioning message
-                var messagePosition = {
-                    top:this.$el.height() / 2 - (message.height() / 2),
-                    left:this.$el.width() / 2 - (message.width() / 2)
-                };
+                    // Displaying message with fadeIn/fadeOut effects
+                    message.css(messagePosition)
+                        .fadeIn(300, function () {
+                            $(this)
+                                .delay(500)
+                                .fadeOut(300, function () {
+                                    $(this).remove();
+                                });
+                        });
+                }
+            },
 
-                // Displaying message with fadeIn/fadeOut effects
-                message
-                    .css(messagePosition)
-                    .fadeIn(300, function () {
-                        $(this)
-                            .delay(500)
-                            .fadeOut(300, function () {
-                                $(this).remove();
-                            });
-                    });
+            _toggleBtn_clickHandler:{
+                value:function _toggleBtn_clickHandler() {
+                    this.currentView.toggleNonWorking();
+                }
+            },
+
+            _currentView_rangeChangedHandler:{
+                value:function _currentView_rangeChangedHandler() {
+                    this.date = this.currentView.date;
+                    this._showRangeChangeMessage();
+                    this._updateCurrentPeriodLabel();
+                }
+            },
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Swipe gesture events and context menu functions
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            _currentView_contextMenuHandler:{
+                value:function _currentView_contextMenuHandler(entry) {
+                    // Bubbling up
+                    this.trigger(Calendar.CONTEXT_MENU, entry);
+                }},
+
+            _container_mouseDownHandler:{
+                value:function _container_mouseDownHandler(event) {
+                    var that = this;
+
+                    // Getting touch point with touch coordinates, this depends on the runtime,
+                    // on devices it's part of touches array
+                    var touchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
+                        touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
+
+                    // Setting touch point X and Y
+                    this._container_mouseDownHandler.touchPoint = {
+                        x:touchPoint.pageX,
+                        y:touchPoint.pageY
+                    };
+
+                    if (touchesCount == 1) {
+                        // For desktop devices document needs to be a move and up target
+                        var moveTarget = $(document);
+
+                        // Adding move and up listeners
+                        moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, this._container_mouseMoveHandler);
+                        moveTarget.on(that.MOUSE_UP_EV, {context:that}, this._container_mouseUpHandler);
+                    }
+                }
+            },
+
+            _container_mouseMoveHandler:{
+                value:function _container_mouseMoveHandler(event) {
+                    var that = event.data.context,
+                        downTouchPoint = that._container_mouseDownHandler.touchPoint;
+
+                    // Getting touch point with touch coordinates, this depends on the runtime,
+                    // on devices it part of touches array
+                    var moveTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
+                        touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
+
+                    var xDelta = moveTouchPoint.pageX - downTouchPoint.x,
+                        yDelta = moveTouchPoint.pageY - downTouchPoint.y;
+
+                    if (Math.abs(xDelta) >= 60 && Math.abs(yDelta) < 10 && touchesCount == 1) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+
+                        // For desktop devices document needs to be a move and up target
+                        var moveTarget = $(document);
+                        moveTarget.off(that.MOUSE_UP_EV, that._container_mouseUpHandler);
+                        moveTarget.off(that.MOUSE_MOVE_EV, that._container_mouseMoveHandler);
+
+                        if (xDelta > 0)
+                            that.currentView.prev();
+                        else if (xDelta < 0)
+                            that.currentView.next();
+                    }
+                }
+            },
+
+            _container_mouseUpHandler:{
+                value:function _container_mouseUpHandler(event) {
+                    var that = event.data.context;
+
+                    // For desktop devices document needs to be a move and up target
+                    var moveTarget = $(document);
+                    moveTarget.off(that.MOUSE_UP_EV, that._container_mouseUpHandler);
+                    moveTarget.off(that.MOUSE_MOVE_EV, that._container_mouseMoveHandler);
+
+                    // Getting touch point with touch coordinates, this depends on the runtime,
+                    // on devices it's part of changedTouches array for TouchEnd event
+                    var upTouchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.changedTouches[0] : event,
+                        downTouchPoint = that._container_mouseDownHandler.touchPoint;
+
+                    // Detecting if this is container click
+                    if (Math.abs(upTouchPoint.pageX - downTouchPoint.x) < 5
+                        && Math.abs(upTouchPoint.pageY - downTouchPoint.y) < 5) {
+
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+
+                        that.currentView.selectEventEntries(null);
+
+                        // HACK: Forcing reflow, on devices for some reason display doesn'up update
+                        that.currentView.$el.width();
+                    }
+                }
             }
-
-            function toggleNonWorking() {
-                this.currentView.toggleNonWorking();
-            }
-
-            function prevBtn_clickHandler(event) {
-                console.log('prevBtn clicked!');
-            }
-
-            function currentView_rangeChangedHandler() {
-
-            }
-
-            function currentView_contextMenuHandler(entry) {
-                this.trigger('contextMenu', entry);
-            }
-
-            /**
-             * Mouse or touch down handler.
-             *
-             * @private
-             * @param event
-             */
-            function container_mouseDownHandler(event) {
-                alert('mouse down handle');
-
-//            var that = event.data.context;
-//
-//            // Getting touch point with touch coordinates, this depends on the runtime,
-//            // on devices it's part of touches array
-//            var touchPoint = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches[0] : event,
-//                touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
-//
-//            // Setting touch point X and Y
-//            that.container_mouseDownHandler.touchPoint = {
-//                x:touchPoint.pageX,
-//                y:touchPoint.pageY
-//            };
-//
-//            if (touchesCount == 1) {
-//                // For desktop devices document needs to be a move and up target
-//                var moveTarget = $(document);
-//
-//                // Adding move and up listeners
-//                moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, that.container_mouseMoveHandler);
-//                moveTarget.on(that.MOUSE_UP_EV, {context:that}, that.container_mouseUpHandler);
-//            }
-            }
-
-
-        };
-        Calendar.RANGE_CHANGED = 'rangeChanged';
-        Calendar.CONTEXT_MENU = 'contextMenu';
-        Calendar.prototype = Object.create(Component.prototype);
+        });
 
         return Calendar;
     });
