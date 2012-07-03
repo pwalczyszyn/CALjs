@@ -43,6 +43,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
              */
             this.date = options && options.date ? options.date : new Date;
 
+            // Hold window height to detect if reflow of views is necessary after resizing
             this.windowHeight = null;
         };
 
@@ -72,7 +73,8 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                     this.weekView = this.currentView = new WeekView({
                         collection:this.collection,
                         date:this.date,
-                        entryTemplate:this.options.weekEntryTemplate
+                        weekEntryRenderFn:this.options.weekEntryRenderFn,
+                        weekEntryChangeFn:this.options.weekEntryChangeFn
                     });
                     // Adding range changed handler
                     this.weekView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
@@ -96,16 +98,6 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 }
             },
 
-            _resize:{
-                value:function _resize(event) {
-                    var that = event.data.context;
-                    if (that.windowHeight != window.innerHeight)
-                        that.currentView.updateView.call(that.currentView);
-
-                    that.windowHeight = window.innerHeight;
-                }
-            },
-
             activate:{
                 value:function activate() {
                     this.windowHeight = window.innerHeight;
@@ -118,6 +110,16 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 value:function deactivate() {
                     $(window).off(this.RESIZE_EV, this._resize);
                     this.currentView.deactivateView();
+                }
+            },
+
+            _resize:{
+                value:function _resize(event) {
+                    var that = event.data.context;
+                    if (that.windowHeight != window.innerHeight)
+                        that.currentView.updateView.call(that.currentView);
+
+                    that.windowHeight = window.innerHeight;
                 }
             },
 
@@ -148,7 +150,12 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
 
                         // Doing lazy initialization of the month view
                         if (!this.monthView) {
-                            this.monthView = new MonthView({collection:this.collection, date:this.date});
+                            this.monthView = new MonthView({
+                                collection:this.collection,
+                                date:this.date,
+                                monthEntryRenderFn:this.options.monthEntryRenderFn,
+                                monthEntryChangeFn:this.options.monthEntryChangeFn
+                            });
                             this.monthView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
                             this.monthView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
                             // Registering handler for container gesture events
@@ -186,11 +193,6 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 }
             },
 
-            /**
-             * Updates RangeLabel content based on currentView.date value.
-             *
-             * @private
-             */
             _updateCurrentPeriodLabel:{
                 value:function _updateCurrentPeriodLabel() {
                     var label;
@@ -212,11 +214,6 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                 }
             },
 
-            /**
-             * Displays popup message when dates range is changed.
-             *
-             * @private
-             */
             _showRangeChangeMessage:{
                 value:function _showRangeChangeMessage() {
                     // Setting displayed message text

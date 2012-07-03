@@ -1243,7 +1243,7 @@ define('WeekEntry',['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip']
     function (EntryBase, DateHelper, WeekEntryTemplate) {
         var WeekEntry = function WeekEntry(options) {
 
-            if (!options.el) options.el = WeekEntryTemplate;
+            options.el = WeekEntryTemplate;
 
             EntryBase.call(this, options);
 
@@ -1285,7 +1285,6 @@ define('WeekEntry',['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip']
             if (this.startDateTime.getTime() == this.model.get('StartDateTime').getTime()) {
                 this.$resizeBarTop = $('<cj:Handle />');
             } else {
-                // TODO: implement dragging from spanning days
                 this.canDrag = false;
             }
 
@@ -1294,27 +1293,41 @@ define('WeekEntry',['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip']
                 this.$resizeBarBottom = $('<cj:Handle />');
             }
 
-            // TODO: externalize it
-//            this.model.on('change:AccountName', this.model_changeHandler, this);
-//            this.model.on('change:Subject', this.model_changeHandler, this);
-//            this.model.on('change:ActivityType', this.model_changeHandler, this);
+            // Entry render function
+            this.renderFn = options.weekEntryRenderFn || this._defaultRender;
 
+            // Model change rerender function
+            this.changeFn = options.weekEntryChangeFn || this._defaultRender;
+
+            // Model change handler
+            this.model.on('change', this._model_changeHandler, this);
         };
 
         WeekEntry.prototype = Object.create(EntryBase.prototype, {
 
             render:{
                 value:function render() {
+                    return this.renderFn.call(this);
+                }
+            },
+
+            _defaultRender:{
+                value:function _defaultRender() {
 
                     this.$colorBar.css('background-color', this.model.get('Color'));
                     this.$titleLabel.html(this.model.get('Title'));
 
                     this.$el.css({top:this.entryTop + 'px', bottom:this.entryBottom + 'px'});
 
-                    if (this.$el.hasClass('selected'))
-                        this.select();
+                    if (this.$el.hasClass('selected')) this.select();
 
                     return this;
+                }
+            },
+
+            _model_changeHandler:{
+                value:function _model_changeHandler() {
+                    this.changeFn.call(this);
                 }
             },
 
@@ -1790,14 +1803,14 @@ define('WeekView',['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.
                             if (entryStartTimeMs >= weekStartMs && entryStartTimeMs <= weekEndMs &&
                                 !(this.nonWorkingDays.indexOf(entryStartTime.getDay()) >= 0 && this.nonWorkingHidden)) {
 
-                                var entry = new WeekEntry(
-                                    {
-                                        model:calEvent,
-                                        hourHeight:this.hourHeight,
-                                        startDateTime:entryStartTime,
-                                        endDateTime:entryEndTime,
-                                        el:this.options.entryTemplate
-                                    });
+                                var entry = new WeekEntry({
+                                    model:calEvent,
+                                    hourHeight:this.hourHeight,
+                                    startDateTime:entryStartTime,
+                                    endDateTime:entryEndTime,
+                                    weekEntryRenderFn:this.options.weekEntryRenderFn,
+                                    weekEntryChangeFn:this.options.weekEntryChangeFn
+                                });
 
                                 // Adding event listener for selected event
                                 entry.on('focused', this._entry_focusedHandler, this);
@@ -2282,7 +2295,7 @@ define('MonthEntry',['EntryBase', 'utils/DateHelper', 'text!MonthEntry.tpl!strip
 
         var MonthEntry = function MonthEntry(options) {
 
-            if (!options.el) options.el = MonthEntryTemplate;
+            options.el = MonthEntryTemplate;
 
             EntryBase.call(this, options);
 
@@ -2292,24 +2305,34 @@ define('MonthEntry',['EntryBase', 'utils/DateHelper', 'text!MonthEntry.tpl!strip
 
             this.$startTime = this.$('cj\\:Label.month-entry-start-time');
 
+            // Entry render function
+            this.renderFn = options.monthEntryRenderFn || this._defaultRender;
+
+            // Model change rerender function
+            this.changeFn = options.monthEntryChangeFn || this._defaultRender;
+
             this.model.on('change', this._model_changeHandler, this);
         }
 
         MonthEntry.prototype = Object.create(EntryBase.prototype, {
             render:{
-                value:function () {
+                value:function render() {
+                    return this.renderFn.call(this);
+                }
+            },
 
+            _defaultRender:{
+                value:function _defaultRender() {
                     this.$colorBar.css('background-color', this.model.get('Color'));
                     this.$titleLabel.html(this.model.get('Title'));
                     this.$startTime.html(DateHelper.format(this.model.get('StartDateTime'), 'HH:MM TT'));
-
                     return this;
                 }
             },
 
             _model_changeHandler:{
-                value:function () {
-                    this.render();
+                value:function _model_changeHandler() {
+                    this.changeFn.call(this);
                 }
             }
         });
@@ -2411,14 +2434,14 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         showDate:{
-            value:function (date) {
+            value:function showDate(date) {
                 this.date = date;
                 this.updateView();
             }
         },
 
         next:{
-            value:function () {
+            value:function next() {
                 var nextDate = new Date(this.date);
                 nextDate.setDate(1);
                 nextDate.setMonth(nextDate.getMonth() + 1);
@@ -2429,7 +2452,7 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         },
 
         prev:{
-            value:function () {
+            value:function prev() {
                 var nextDate = new Date(this.date);
                 nextDate.setDate(1);
                 nextDate.setMonth(nextDate.getMonth() - 1);
@@ -2447,7 +2470,7 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         },
 
         updateView:{
-            value:function () {
+            value:function updateView() {
                 // Setting week range dates
                 this._setRangeDates();
 
@@ -2463,7 +2486,7 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
          * Sets the MonthView start and end dates
          */
         _setRangeDates:{
-            value:function () {
+            value:function _setRangeDates() {
                 var monthStartDate = new Date(this.date);
                 monthStartDate.setDate(1);
                 monthStartDate.setHours(0, 0, 0, 0);
@@ -2496,7 +2519,7 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         },
 
         _drawCalendarGrid:{
-            value:function () {
+            value:function _drawCalendarGrid() {
 
                 delete this.days;
                 this.days = {};
@@ -2556,7 +2579,7 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         _addCalEvents:{
-            value:function () {
+            value:function _addCalEvents() {
                 // Removing all previous entries
                 this.entries.forEach(this._removeEntryEventHandlers, this);
 
@@ -2569,7 +2592,7 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         },
 
         _addCalEvent:{
-            value:function (calEvent) {
+            value:function _addCalEvent(calEvent) {
 
                 var rangeStartMs = this.rangeStartDate.getTime(),
                     rangeEndMs = this.rangeEndDate.getTime();
@@ -2596,7 +2619,12 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
                             entryDate.setHours(0, 0, 0, 0);
 
                             // Creating new entry
-                            var entry = new MonthEntry({model:calEvent, date:entryDate});
+                            var entry = new MonthEntry({
+                                model:calEvent,
+                                date:entryDate,
+                                monthEntryRenderFn:this.options.monthEntryRenderFn,
+                                monthEntryChangeFn:this.options.monthEntryChangeFn
+                            });
 
                             // Adding event listener for selected event
                             entry.on('focused', this._entry_focusedHandler, this);
@@ -2633,14 +2661,14 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         },
 
         _updateCalEvent:{
-            value:function (calEvent) {
+            value:function _updateCalEvent(calEvent) {
                 this._removeCalEvent(calEvent);
                 this._addCalEvent(calEvent);
             }
         },
 
         _removeCalEvent:{
-            value:function (calEvent) {
+            value:function _removeCalEvent(calEvent) {
                 this.entries = this.entries.filter(function (entry) {
                     var remove = entry.model == calEvent;
                     if (remove)
@@ -2651,7 +2679,7 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         },
 
         _removeEntryEventHandlers:{
-            value:function (entry) {
+            value:function _removeEntryEventHandlers(entry) {
                 // Unregistering selected entry handlers
                 entry.off('focused', this._entry_focusedHandler);
                 entry.off('contextMenu', this._entry_contextMenuHandler);
@@ -2665,13 +2693,13 @@ define('MonthView',['Component', 'MonthEntry', 'utils/DateHelper'], function (Co
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         _entry_focusedHandler:{
-            value:function (entry) {
+            value:function _entry_focusedHandler(entry) {
                 this.selectEventEntries(entry.model);
             }
         },
 
         selectEventEntries:{
-            value:function (calEvent) {
+            value:function selectEventEntries(calEvent) {
                 this.entries.forEach(function (entry) {
 
                     if (calEvent == entry.model)
@@ -2830,6 +2858,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
              */
             this.date = options && options.date ? options.date : new Date;
 
+            // Hold window height to detect if reflow of views is necessary after resizing
             this.windowHeight = null;
         };
 
@@ -2859,7 +2888,8 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                     this.weekView = this.currentView = new WeekView({
                         collection:this.collection,
                         date:this.date,
-                        entryTemplate:this.options.weekEntryTemplate
+                        weekEntryRenderFn:this.options.weekEntryRenderFn,
+                        weekEntryChangeFn:this.options.weekEntryChangeFn
                     });
                     // Adding range changed handler
                     this.weekView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
@@ -2883,16 +2913,6 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                 }
             },
 
-            _resize:{
-                value:function _resize(event) {
-                    var that = event.data.context;
-                    if (that.windowHeight != window.innerHeight)
-                        that.currentView.updateView.call(that.currentView);
-
-                    that.windowHeight = window.innerHeight;
-                }
-            },
-
             activate:{
                 value:function activate() {
                     this.windowHeight = window.innerHeight;
@@ -2905,6 +2925,16 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                 value:function deactivate() {
                     $(window).off(this.RESIZE_EV, this._resize);
                     this.currentView.deactivateView();
+                }
+            },
+
+            _resize:{
+                value:function _resize(event) {
+                    var that = event.data.context;
+                    if (that.windowHeight != window.innerHeight)
+                        that.currentView.updateView.call(that.currentView);
+
+                    that.windowHeight = window.innerHeight;
                 }
             },
 
@@ -2935,7 +2965,12 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
 
                         // Doing lazy initialization of the month view
                         if (!this.monthView) {
-                            this.monthView = new MonthView({collection:this.collection, date:this.date});
+                            this.monthView = new MonthView({
+                                collection:this.collection,
+                                date:this.date,
+                                monthEntryRenderFn:this.options.monthEntryRenderFn,
+                                monthEntryChangeFn:this.options.monthEntryChangeFn
+                            });
                             this.monthView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
                             this.monthView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
                             // Registering handler for container gesture events
@@ -2973,11 +3008,6 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                 }
             },
 
-            /**
-             * Updates RangeLabel content based on currentView.date value.
-             *
-             * @private
-             */
             _updateCurrentPeriodLabel:{
                 value:function _updateCurrentPeriodLabel() {
                     var label;
@@ -2999,11 +3029,6 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                 }
             },
 
-            /**
-             * Displays popup message when dates range is changed.
-             *
-             * @private
-             */
             _showRangeChangeMessage:{
                 value:function _showRangeChangeMessage() {
                     // Setting displayed message text

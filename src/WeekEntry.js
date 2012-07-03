@@ -10,7 +10,7 @@ define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
     function (EntryBase, DateHelper, WeekEntryTemplate) {
         var WeekEntry = function WeekEntry(options) {
 
-            if (!options.el) options.el = WeekEntryTemplate;
+            options.el = WeekEntryTemplate;
 
             EntryBase.call(this, options);
 
@@ -52,7 +52,6 @@ define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
             if (this.startDateTime.getTime() == this.model.get('StartDateTime').getTime()) {
                 this.$resizeBarTop = $('<cj:Handle />');
             } else {
-                // TODO: implement dragging from spanning days
                 this.canDrag = false;
             }
 
@@ -61,27 +60,41 @@ define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
                 this.$resizeBarBottom = $('<cj:Handle />');
             }
 
-            // TODO: externalize it
-//            this.model.on('change:AccountName', this.model_changeHandler, this);
-//            this.model.on('change:Subject', this.model_changeHandler, this);
-//            this.model.on('change:ActivityType', this.model_changeHandler, this);
+            // Entry render function
+            this.renderFn = options.weekEntryRenderFn || this._defaultRender;
 
+            // Model change rerender function
+            this.changeFn = options.weekEntryChangeFn || this._defaultRender;
+
+            // Model change handler
+            this.model.on('change', this._model_changeHandler, this);
         };
 
         WeekEntry.prototype = Object.create(EntryBase.prototype, {
 
             render:{
                 value:function render() {
+                    return this.renderFn.call(this);
+                }
+            },
+
+            _defaultRender:{
+                value:function _defaultRender() {
 
                     this.$colorBar.css('background-color', this.model.get('Color'));
                     this.$titleLabel.html(this.model.get('Title'));
 
                     this.$el.css({top:this.entryTop + 'px', bottom:this.entryBottom + 'px'});
 
-                    if (this.$el.hasClass('selected'))
-                        this.select();
+                    if (this.$el.hasClass('selected')) this.select();
 
                     return this;
+                }
+            },
+
+            _model_changeHandler:{
+                value:function _model_changeHandler() {
+                    this.changeFn.call(this);
                 }
             },
 

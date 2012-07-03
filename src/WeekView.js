@@ -354,14 +354,14 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                             if (entryStartTimeMs >= weekStartMs && entryStartTimeMs <= weekEndMs &&
                                 !(this.nonWorkingDays.indexOf(entryStartTime.getDay()) >= 0 && this.nonWorkingHidden)) {
 
-                                var entry = new WeekEntry(
-                                    {
-                                        model:calEvent,
-                                        hourHeight:this.hourHeight,
-                                        startDateTime:entryStartTime,
-                                        endDateTime:entryEndTime,
-                                        el:this.options.entryTemplate
-                                    });
+                                var entry = new WeekEntry({
+                                    model:calEvent,
+                                    hourHeight:this.hourHeight,
+                                    startDateTime:entryStartTime,
+                                    endDateTime:entryEndTime,
+                                    weekEntryRenderFn:this.options.weekEntryRenderFn,
+                                    weekEntryChangeFn:this.options.weekEntryChangeFn
+                                });
 
                                 // Adding event listener for selected event
                                 entry.on('focused', this._entry_focusedHandler, this);

@@ -94,14 +94,14 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         showDate:{
-            value:function (date) {
+            value:function showDate(date) {
                 this.date = date;
                 this.updateView();
             }
         },
 
         next:{
-            value:function () {
+            value:function next() {
                 var nextDate = new Date(this.date);
                 nextDate.setDate(1);
                 nextDate.setMonth(nextDate.getMonth() + 1);
@@ -112,7 +112,7 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         },
 
         prev:{
-            value:function () {
+            value:function prev() {
                 var nextDate = new Date(this.date);
                 nextDate.setDate(1);
                 nextDate.setMonth(nextDate.getMonth() - 1);
@@ -130,7 +130,7 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         },
 
         updateView:{
-            value:function () {
+            value:function updateView() {
                 // Setting week range dates
                 this._setRangeDates();
 
@@ -146,7 +146,7 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
          * Sets the MonthView start and end dates
          */
         _setRangeDates:{
-            value:function () {
+            value:function _setRangeDates() {
                 var monthStartDate = new Date(this.date);
                 monthStartDate.setDate(1);
                 monthStartDate.setHours(0, 0, 0, 0);
@@ -179,7 +179,7 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         },
 
         _drawCalendarGrid:{
-            value:function () {
+            value:function _drawCalendarGrid() {
 
                 delete this.days;
                 this.days = {};
@@ -239,7 +239,7 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         _addCalEvents:{
-            value:function () {
+            value:function _addCalEvents() {
                 // Removing all previous entries
                 this.entries.forEach(this._removeEntryEventHandlers, this);
 
@@ -252,7 +252,7 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         },
 
         _addCalEvent:{
-            value:function (calEvent) {
+            value:function _addCalEvent(calEvent) {
 
                 var rangeStartMs = this.rangeStartDate.getTime(),
                     rangeEndMs = this.rangeEndDate.getTime();
@@ -279,7 +279,12 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
                             entryDate.setHours(0, 0, 0, 0);
 
                             // Creating new entry
-                            var entry = new MonthEntry({model:calEvent, date:entryDate});
+                            var entry = new MonthEntry({
+                                model:calEvent,
+                                date:entryDate,
+                                monthEntryRenderFn:this.options.monthEntryRenderFn,
+                                monthEntryChangeFn:this.options.monthEntryChangeFn
+                            });
 
                             // Adding event listener for selected event
                             entry.on('focused', this._entry_focusedHandler, this);
@@ -316,14 +321,14 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         },
 
         _updateCalEvent:{
-            value:function (calEvent) {
+            value:function _updateCalEvent(calEvent) {
                 this._removeCalEvent(calEvent);
                 this._addCalEvent(calEvent);
             }
         },
 
         _removeCalEvent:{
-            value:function (calEvent) {
+            value:function _removeCalEvent(calEvent) {
                 this.entries = this.entries.filter(function (entry) {
                     var remove = entry.model == calEvent;
                     if (remove)
@@ -334,7 +339,7 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         },
 
         _removeEntryEventHandlers:{
-            value:function (entry) {
+            value:function _removeEntryEventHandlers(entry) {
                 // Unregistering selected entry handlers
                 entry.off('focused', this._entry_focusedHandler);
                 entry.off('contextMenu', this._entry_contextMenuHandler);
@@ -348,13 +353,13 @@ define(['Component', 'MonthEntry', 'utils/DateHelper'], function (Component, Mon
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         _entry_focusedHandler:{
-            value:function (entry) {
+            value:function _entry_focusedHandler(entry) {
                 this.selectEventEntries(entry.model);
             }
         },
 
         selectEventEntries:{
-            value:function (calEvent) {
+            value:function selectEventEntries(calEvent) {
                 this.entries.forEach(function (entry) {
 
                     if (calEvent == entry.model)
