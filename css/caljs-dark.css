@@ -1,0 +1,450 @@
+cj\:Calendar {
+  display: inline-block;
+  position: relative;
+  min-width: 300px;
+  min-height: 250px;
+  font-family: Helvetica;
+  background-color: whiteSmoke;
+}
+cj\:NavigationBar {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 48px;
+  right: 48px;
+}
+cj\:NavigationBarLeft {
+  float: left;
+  line-height: 60px;
+  vertical-align: middle;
+}
+cj\:NavigationBarLeft > *:not(:first-child) {
+  margin-left: 10px;
+}
+cj\:NavigationBarRight {
+  float: right;
+  line-height: 60px;
+  vertical-align: middle;
+}
+cj\:NavigationBarRight > *:not(:last-child) {
+  margin-right: 10px;
+}
+cj\:WeekView {
+  display: block;
+  position: absolute;
+  width: 100%;
+  top: 60px;
+  bottom: 5px;
+}
+cj\:RangeLabel {
+  display: inline-block;
+}
+cj\:Headers {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 48px;
+  right: 48px;
+  height: 47px;
+}
+cj\:Headers.desktop {
+  /* extra space for the scroller */
+
+  right: 51px;
+}
+cj\:WeekDayHeader {
+  display: inline-block;
+  position: relative;
+  float: left;
+  height: 100%;
+  line-height: 47px;
+  font-size: 0.8em;
+  color: #6d6e71;
+  background-size: 100% 100%;
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, #d7d7d7), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, #d7d7d7), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, #d7d7d7));
+}
+cj\:WeekDayHeader:last-child {
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, #d7d7d7), color-stop(1%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, #d7d7d7)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, #d7d7d7), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, #d7d7d7));
+}
+cj\:WeekDayHeader cj\:Label:first-child {
+  float: left;
+  margin-left: 10px;
+}
+cj\:WeekDayHeader cj\:Label:last-child {
+  float: right;
+  margin-right: 10px;
+}
+cj\:WeekDayHeader.today {
+  font-weight: bold;
+  color: #0078d4;
+}
+cj\:Scroller {
+  display: block;
+  position: absolute;
+  top: 50px;
+  width: 100%;
+  bottom: 0;
+}
+cj\:Scroller::-webkit-scrollbar {
+  width: 3px;
+}
+cj\:Scroller::-webkit-scrollbar:horizontal {
+  display: none;
+}
+cj\:Scroller::-webkit-scrollbar-track {
+  background: #d3d3d3;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+cj\:Scroller::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  background: #808080;
+}
+cj\:Scroller::-webkit-scrollbar-thumb:window-inactive {
+  background: #808080;
+}
+cj\:Container {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+cj\:LeftHours,
+cj\:RightHours {
+  display: inline-block;
+  position: absolute;
+  color: #6d6e71;
+  width: 48px;
+  height: 100%;
+  font-size: 0.6em;
+}
+cj\:LeftHours {
+  left: 0;
+}
+cj\:RightHours {
+  right: 0;
+}
+cj\:LeftHours > cj\:Label,
+cj\:RightHours > cj\:Label {
+  display: block;
+  position: relative;
+  width: 40px;
+  text-align: right;
+  height: 4.16666666666667%;
+}
+cj\:Label.minutes-marker {
+  position: absolute;
+  font-weight: bold;
+  margin-top: -0.5em;
+}
+cj\:WeekDays {
+  display: block;
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  height: 100%;
+}
+cj\:WeekDay {
+  display: inline-block;
+  position: relative;
+  float: left;
+  height: 100%;
+  border-bottom: solid 1px #c8c8c8;
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, #c8c8c8), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, #c8c8c8), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+}
+cj\:WeekDay:last-child {
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, #c8c8c8), color-stop(1%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, #c8c8c8)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, #c8c8c8), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.5)), color-stop(51%, rgba(200, 200, 200, 0.5)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+}
+cj\:WeekDayHeader:nth-child(odd),
+cj\:WeekDay:nth-child(odd) {
+  background-color: #F1F1F1;
+}
+cj\:WeekEntry {
+  display: block;
+  position: absolute;
+  background-color: white;
+  width: 100%;
+}
+cj\:WeekEntry cj\:Handle:first-of-type {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 12px;
+  line-height: 12px;
+  padding: 2px 0px 5px 0px;
+  text-align: center;
+  background-color: #444;
+  border-radius: 7px 7px 0px 0px;
+  box-shadow: 0px -3px 2px 2px #f1f1f1;
+}
+cj\:WeekEntry cj\:Handle:last-of-type {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 12px;
+  line-height: 12px;
+  padding: 2px 0px 5px 0px;
+  text-align: center;
+  background-color: #444;
+  border-radius: 0px 0px 7px 7px;
+  box-shadow: 0px 3px 2px 2px #f1f1f1;
+}
+cj\:ColorBar {
+  display: block;
+  position: absolute;
+  height: 100%;
+  left: 0;
+  width: 8px;
+}
+cj\:Content {
+  display: table;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  padding-left: 8px;
+  box-sizing: border-box;
+}
+cj\:Centered {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  cursor: default;
+}
+cj\:RangeChangeMessage {
+  display: none;
+  position: absolute;
+  background-color: #6d6e71;
+  opacity: 0.85;
+  text-align: center;
+  line-height: 4em;
+  font-size: 3em;
+  border: 1px solid #6d6e71;
+  color: #ffffff;
+  width: 500px;
+  margin: auto;
+  box-shadow: 0px 10px 15px 1px rgba(0, 0, 0, 0.1);
+}
+/* MonthView styles */
+cj\:MonthView {
+  position: absolute;
+  display: block;
+  overflow: hidden;
+  left: 5px;
+  top: 60px;
+  right: 5px;
+  bottom: 5px;
+}
+cj\:MonthWeek {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+cj\:MonthDay {
+  position: relative;
+  display: inline-block;
+  float: left;
+  height: 100%;
+  padding: 5px;
+  overflow: hidden;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  border: 1px solid #c8c8c8;
+}
+cj\:MonthDay[current=false] {
+  background-color: #e6e6e6;
+}
+cj\:MonthDayLabel {
+  position: relative;
+  display: block;
+  text-align: right;
+  color: #6D6E71;
+}
+cj\:MonthDay[today=true] tc\:MonthDayLabel {
+  font-weight: bold;
+  color: #0078d4;
+}
+cj\:MonthEntry {
+  position: relative;
+  display: block;
+  height: 1.5em;
+  margin-top: 0.2em;
+}
+cj\:MonthEntry.selected {
+  background-color: white;
+}
+cj\:Label.month-entry-title {
+  position: absolute;
+  display: block;
+  line-height: 1.5em;
+  left: 15px;
+  right: 52px;
+  font-size: 0.9em;
+  cursor: default;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+cj\:Label.month-entry-start-time {
+  position: absolute;
+  display: block;
+  line-height: 1.5em;
+  right: 0;
+  width: 50px;
+  font-size: 0.7em;
+  cursor: default;
+  color: #6D6E71;
+}
+/*******************************************************
+* Touch Buttons
+*******************************************************/
+cj\:Button {
+  display: inline-block;
+  height: 30px;
+  width: 30px;
+  vertical-align: middle;
+}
+cj\:Button.txt {
+  width: auto;
+  line-height: 30px;
+  padding-left: 10px;
+  padding-right: 10px;
+  box-sizing: border-box;
+  color: #6d6e71;
+  border: 1px solid #6d6e71;
+  cursor: default;
+}
+cj\:Button.txt:active,
+cj\:Button.txt.down {
+  color: #ffffff;
+  background: #6d6e71;
+}
+cj\:Button.btn-prev,
+cj\:Button.btn-prev.up {
+  background-image: url("/images/caljs/dark/btn-prev.png");
+}
+cj\:Button.btn-prev.down,
+cj\:Button.btn-prev.active {
+  background-image: url("/images/caljs/dark/btn-prev-on.png");
+}
+cj\:Button.btn-next,
+cj\:Button.btn-next.up {
+  background-image: url("/images/caljs/dark/btn-next.png");
+}
+cj\:Button.btn-next.down,
+cj\:Button.btn-next.active {
+  background-image: url("/images/caljs/dark/btn-next-on.png");
+}
+cj\:Button.btn-week-view,
+cj\:Button.btn-week-view.up {
+  background-image: url("/images/caljs/dark/btn-week.png");
+}
+cj\:Button.btn-week-view.down,
+cj\:Button.btn-week-view.active {
+  background-image: url("/images/caljs/dark/btn-week-on.png");
+}
+cj\:Button.btn-month-view,
+cj\:Button.btn-month-view.up {
+  background-image: url("/images/caljs/dark/btn-month.png");
+}
+cj\:Button.btn-month-view.down,
+cj\:Button.btn-month-view.active {
+  background-image: url("/images/caljs/dark/btn-month-on.png");
+}
+cj\:Calendar {
+  font-family: Helvetica;
+  background: #0c0c0c;
+  background: -moz-radial-gradient(center, ellipse cover, #09242d 0%, #0c0c0c 100%);
+  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%, #09242d), color-stop(100%, #0c0c0c));
+  background: -webkit-radial-gradient(center, ellipse cover, #09242d 0%, #0c0c0c 100%);
+  background: -o-radial-gradient(center, ellipse cover, #09242d 0%, #0c0c0c 100%);
+  background: -ms-radial-gradient(center, ellipse cover, #09242d 0%, #0c0c0c 100%);
+  background: radial-gradient(center, ellipse cover, #09242d 0%, #0c0c0c 100%);
+}
+cj\:WeekDayHeader {
+  z-index: 10;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.6);
+  background-size: 100% 100%;
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 0.2)), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 0.1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 0.1)));
+}
+cj\:WeekDayHeader:last-child {
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 0.2)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99%, rgba(215, 215, 215, 0.2))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 0.1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 0.1)));
+}
+cj\:WeekDayHeader.today {
+  font-weight: bold;
+  color: #1ef7ff;
+  text-shadow: 0px 0px 7px rgba(27, 236, 247, 0.5), 0px 0px 3px rgba(27, 236, 247, 0.8);
+}
+cj\:Label.minutes-marker {
+  color: #1ef7ff;
+  text-shadow: 0px 0px 7px rgba(27, 236, 247, 0.5), 0px 0px 3px rgba(27, 236, 247, 0.8);
+}
+cj\:WeekDay {
+  border-bottom: solid 1px rgba(200, 200, 200, 0.2);
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 0.2)), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 0.2)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.1)), color-stop(51%, rgba(200, 200, 200, 0.1)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+}
+cj\:WeekDay:last-child {
+  background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(200, 200, 200, 0.2)), color-stop(1%, transparent), color-stop(99%, transparent), color-stop(99%, rgba(200, 200, 200, 0.2))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(200, 200, 200, 0.2)), color-stop(1.5%, transparent), color-stop(50%, transparent), color-stop(50%, rgba(200, 200, 200, 0.1)), color-stop(51%, rgba(200, 200, 200, 0.1)), color-stop(51.5%, transparent), color-stop(100%, transparent));
+}
+cj\:WeekDayHeader:nth-child(odd),
+cj\:WeekDay:nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+cj\:WeekEntry {
+  background-color: #e7e9ea;
+  box-shadow: 0px 0px 5px #09242d;
+}
+cj\:WeekEntry cj\:Handle:first-of-type {
+  background-color: #fff;
+  border-radius: 5px 5px 0px 0px;
+  box-shadow: 0px -3px 2px 1px #09242d, 0px 5px 6px rgba(0, 0, 0, 0.05);
+}
+cj\:WeekEntry cj\:Handle:last-of-type {
+  background-color: #fff;
+  border-radius: 0px 0px 5px 5px;
+  box-shadow: 0px 3px 2px 1px #09242d, 0px -5px 6px rgba(0, 0, 0, 0.05);
+}
+cj\:Button {
+  display: inline-block;
+  height: 30px;
+  width: 30px;
+  vertical-align: middle;
+  box-shadow: inset 0px 0px 2px rgba(27, 236, 247, 0.01), 0px 0px 4px rgba(27, 236, 247, 0.01);
+  -webkit-transition: all 0.75s ease-in-out;
+  -moz-transition: all 0.75s ease-in-out;
+  -o-transition: all 0.75s ease-in-out;
+  transition: all 0.75s ease-in-out;
+}
+cj\:Button:active {
+  box-shadow: inset 0px 0px 1px rgba(27, 236, 247, 0.4), 0px 0px 9px rgba(27, 236, 247, 0.7);
+  -webkit-transition: all 0.15s ease-in-out;
+  -moz-transition: all 0.15s ease-in-out;
+  -o-transition: all 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+}
+cj\:Button.txt {
+  background: #232629;
+  background: -moz-linear-gradient(top, #232629 1%, #161718 100%);
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(1%, #232629), color-stop(100%, #161718));
+  background: -webkit-linear-gradient(top, #232629 1%, #161718 100%);
+  background: -o-linear-gradient(top, #232629 1%, #161718 100%);
+  background: -ms-linear-gradient(top, #232629 1%, #161718 100%);
+  background: linear-gradient(top, #232629 1%, #161718 100%);
+  width: auto;
+  line-height: 30px;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 0.8em;
+  box-sizing: border-box;
+  color: #eee;
+  text-shadow: 0px 0px 2px rgba(27, 236, 247, 0.1), 0px 0px 3px rgba(27, 236, 247, 0.1);
+  border-radius: 2px;
+  border: 1px solid #111;
+  cursor: default;
+}
+cj\:Button.txt:active,
+cj\:Button.txt.down {
+  color: #ffffff;
+  box-shadow: inset 0px 0px 1px rgba(27, 236, 247, 0), 0px 0px 9px rgba(27, 236, 247, 0.7);
+  text-shadow: 0px 0px 7px #1becf7, 0px 0px 3px #1becf7;
+}

@@ -1,1 +1,49 @@
-My GitHub Page
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CalJS component test</title>
+
+    <link rel="stylesheet" type="text/css" href="css/caljs-light.css" media="all">
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+
+        #container, #container > * {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <script type="text/javascript" src="scripts/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="scripts/iscroll-lite.js"></script>
+    <script type="text/javascript" src="scripts/caljs-min.js"></script>
+
+    <script type="text/javascript">
+
+        function onBodyLoad() {
+
+            var startDateTime = new Date(),
+                    endDateTime = new Date();
+            endDateTime.setHours(startDateTime.getHours() + 2, 0, 0, 0);
+
+            var entries = new CalJS.Collection([
+                {
+                    Title:'Test Entry',
+                    Color:'#ff0000',
+                    StartDateTime:startDateTime,
+                    EndDateTime:endDateTime
+                }
+            ]);
+
+            var cal = (new CalJS.Calendar({el:'#container', collection:entries})).render();
+            cal.activate();
+        }
+
+    </script>
+</head>
+<body onload="onBodyLoad()">
+<div id="container"/>
+</body>
+</html>
