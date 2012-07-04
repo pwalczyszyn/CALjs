@@ -321,33 +321,33 @@ cj\:Button.txt.down {
 }
 cj\:Button.btn-prev,
 cj\:Button.btn-prev.up {
-  background-image: url("/images/caljs/light/btn-prev.png");
+  background-image: url("../images/caljs/light/btn-prev.png");
 }
 cj\:Button.btn-prev.down,
 cj\:Button.btn-prev.active {
-  background-image: url("/images/caljs/light/btn-prev-on.png");
+  background-image: url("../images/caljs/light/btn-prev-on.png");
 }
 cj\:Button.btn-next,
 cj\:Button.btn-next.up {
-  background-image: url("/images/caljs/light/btn-next.png");
+  background-image: url("../images/caljs/light/btn-next.png");
 }
 cj\:Button.btn-next.down,
 cj\:Button.btn-next.active {
-  background-image: url("/images/caljs/light/btn-next-on.png");
+  background-image: url("../images/caljs/light/btn-next-on.png");
 }
 cj\:Button.btn-week-view,
 cj\:Button.btn-week-view.up {
-  background-image: url("/images/caljs/light/btn-week.png");
+  background-image: url("../images/caljs/light/btn-week.png");
 }
 cj\:Button.btn-week-view.down,
 cj\:Button.btn-week-view.active {
-  background-image: url("/images/caljs/light/btn-week-on.png");
+  background-image: url("../images/caljs/light/btn-week-on.png");
 }
 cj\:Button.btn-month-view,
 cj\:Button.btn-month-view.up {
-  background-image: url("/images/caljs/light/btn-month.png");
+  background-image: url("../images/caljs/light/btn-month.png");
 }
 cj\:Button.btn-month-view.down,
 cj\:Button.btn-month-view.active {
-  background-image: url("/images/caljs/light/btn-month-on.png");
+  background-image: url("../images/caljs/light/btn-month-on.png");
 }
