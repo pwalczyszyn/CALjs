@@ -21,9 +21,11 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['jquery'], factory);
+        define(['jquery', 'require'], factory);
+
     } else {
         // Browser globals
-        root.CalJS = factory((root.jQuery || root.Zepto || root.ender));
+        root.CalJS = factory((root.jQuery || root.Zepto || root.ender), null, root.iScroll);
     }
-}(this, function ($) {
+}(this, function ($, _require, iScroll) {
+

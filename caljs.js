@@ -21,12 +21,14 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['jquery'], factory);
+        define(['jquery', 'require'], factory);
+
     } else {
         // Browser globals
-        root.CalJS = factory((root.jQuery || root.Zepto || root.ender));
+        root.CalJS = factory((root.jQuery || root.Zepto || root.ender), null, root.iScroll);
     }
-}(this, function ($) {
+}(this, function ($, _require, iScroll) {
+
 
 /**
  * almond 0.1.1 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
@@ -1477,13 +1479,18 @@ define('WeekView',['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.
                 if (typeof iScroll !== 'undefined') {
                     this.scroller = new iScroll(this.$scroller[0], {hScrollbar:false});
                 } else {
-                    var that = this;
-                    require(['iScroll'], function (iScroll) {
-                        that.scroller = new iScroll(that.$scroller[0], {hScrollbar:false});
-                        that.scroller.scrollTo(0, -(that.currentScrollHour * that.hourHeight), 200);
-                    }, function (err) {
+                    var req = (typeof _require !== 'undefined') ? _require : require;
+                    if (typeof req !== 'undefined') {
+                        var that = this;
+                        req(['iScroll'], function (iScroll) {
+                            that.scroller = new iScroll(that.$scroller[0], {hScrollbar:false});
+                            that.scroller.scrollTo(0, -(that.currentScrollHour * that.hourHeight), 200);
+                        }, function (err) {
+                            alert('iScroll not found, please provide it to scroll CalJS week view on devices!');
+                        });
+                    } else {
                         alert('iScroll not found, please provide it to scroll CalJS week view on devices!');
-                    });
+                    }
                 }
             } else {
                 this.$headers.addClass('desktop');

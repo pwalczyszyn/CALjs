@@ -28,13 +28,18 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                 if (typeof iScroll !== 'undefined') {
                     this.scroller = new iScroll(this.$scroller[0], {hScrollbar:false});
                 } else {
-                    var that = this;
-                    require(['iScroll'], function (iScroll) {
-                        that.scroller = new iScroll(that.$scroller[0], {hScrollbar:false});
-                        that.scroller.scrollTo(0, -(that.currentScrollHour * that.hourHeight), 200);
-                    }, function (err) {
+                    var req = (typeof _require !== 'undefined') ? _require : require;
+                    if (typeof req !== 'undefined') {
+                        var that = this;
+                        req(['iScroll'], function (iScroll) {
+                            that.scroller = new iScroll(that.$scroller[0], {hScrollbar:false});
+                            that.scroller.scrollTo(0, -(that.currentScrollHour * that.hourHeight), 200);
+                        }, function (err) {
+                            alert('iScroll not found, please provide it to scroll CalJS week view on devices!');
+                        });
+                    } else {
                         alert('iScroll not found, please provide it to scroll CalJS week view on devices!');
-                    });
+                    }
                 }
             } else {
                 this.$headers.addClass('desktop');
