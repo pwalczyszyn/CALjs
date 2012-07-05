@@ -82,13 +82,11 @@ cj\:WeekDayHeader {
     font-size: 0.8em;
     color: #6d6e71;
     background-size: 100% 100%;
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent)),
-                      -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent)), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
 }
 
 cj\:WeekDayHeader:last-child {
-    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1))),
-                      -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
+    background-image: -webkit-gradient(linear, left center, right center, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1))), -webkit-gradient(linear, center top, center bottom, color-stop(1%, rgba(215, 215, 215, 1)), color-stop(1.5%, transparent), color-stop(98.5%, transparent), color-stop(98.5%, rgba(215, 215, 215, 1)));
 }
 
 cj\:WeekDayHeader cj\:Label:first-child {
@@ -204,6 +202,7 @@ cj\:WeekDayHeader:nth-child(odd), cj\:WeekDay:nth-child(odd) {
 cj\:WeekEntry {
     display: block;
     position: absolute;
+    overflow: hidden;
     background-color: white;
     width: 100%;
     box-shadow: inset 0px -2px 0px #ccc, inset 0px 2px 0px #ccc;

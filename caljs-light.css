@@ -163,6 +163,7 @@ cj\:WeekDay:nth-child(odd) {
 cj\:WeekEntry {
   display: block;
   position: absolute;
+  overflow: hidden;
   background-color: white;
   width: 100%;
   box-shadow: inset 0px -2px 0px #cccccc, inset 0px 2px 0px #cccccc;
