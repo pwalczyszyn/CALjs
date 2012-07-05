@@ -517,7 +517,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                         if (top < dayOffset.top)
                             top = dayOffset.top;
 
-                        this._drawTimeChangeMarkers({time:this._getNearestTime((top - dayOffset.top))});
+                        this._drawTimeChangeMarkers({time:this.getNearestTime((top - dayOffset.top))});
 
                         // Reseting weekChanged flag
                         this._entry_draggingHandler.weekChanged = false;
@@ -588,7 +588,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                         if (top < dayOffset.top)
                             top = dayOffset.top;
 
-                        var snappedStartTime = this._getNearestTime(top - dayOffset.top);
+                        var snappedStartTime = this.getNearestTime(top - dayOffset.top);
 
                         var calEvent = event.target.model,
                         // Entry start date time
@@ -780,7 +780,7 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                     var startingDateTime = bar == 'bottom' ? that.endDateTime : that.startDateTime,
                         startingPosition = bar == 'bottom' ? (24 * that.hourHeight - that.entryBottom) : that.entryTop;
 
-                    var snappedHour = this._getNearestTime(startingPosition),
+                    var snappedHour = this.getNearestTime(startingPosition),
                         result = new Date(startingDateTime);
                     result.setHours(
                         snappedHour.getHours(),
@@ -793,8 +793,8 @@ define(['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.tpl!strip',
                 }
             },
 
-            _getNearestTime:{
-                value:function _getNearestTime(from) {
+            getNearestTime:{
+                value:function getNearestTime(from) {
                     var that = this;
                     var hour = from / that.hourHeight * DateHelper.HOUR_MS,
                         modMs = hour % (DateHelper.HOUR_MS * 0.25);

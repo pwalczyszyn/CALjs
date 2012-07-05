@@ -33,7 +33,8 @@ define(['EntryBase', 'utils/DateHelper', 'text!MonthEntry.tpl!strip'],
         MonthEntry.prototype = Object.create(EntryBase.prototype, {
             render:{
                 value:function render() {
-                    return this.renderFn.call(this);
+                    this.renderFn.call(this);
+                    return this;
                 }
             },
 
@@ -42,7 +43,6 @@ define(['EntryBase', 'utils/DateHelper', 'text!MonthEntry.tpl!strip'],
                     this.$colorBar.css('background-color', this.model.get('Color'));
                     this.$titleLabel.html(this.model.get('Title'));
                     this.$startTime.html(DateHelper.format(this.model.get('StartDateTime'), 'HH:MM TT'));
-                    return this;
                 }
             },
 

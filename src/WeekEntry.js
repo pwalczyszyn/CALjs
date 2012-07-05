@@ -50,14 +50,14 @@ define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
 
             // Adding top selection bar if possible
             if (this.startDateTime.getTime() == this.model.get('StartDateTime').getTime()) {
-                this.$resizeBarTop = $('<cj:Handle />');
+                this.$resizeBarTop = $('<cj:TopHandle />');
             } else {
                 this.canDrag = false;
             }
 
             // Adding bottom selection bar if possible
             if (this.endDateTime.getTime() == this.model.get('EndDateTime').getTime()) {
-                this.$resizeBarBottom = $('<cj:Handle />');
+                this.$resizeBarBottom = $('<cj:BottomHandle />');
             }
 
             // Entry render function
@@ -74,7 +74,16 @@ define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
 
             render:{
                 value:function render() {
-                    return this.renderFn.call(this);
+
+                    this.renderFn.call(this);
+
+                    // Position rendered entry
+                    this.$el.css({top:this.entryTop + 'px', bottom:this.entryBottom + 'px'});
+
+                    // Selecting this entry
+                    if (this.$el.hasClass('selected')) this.select();
+
+                    return this;
                 }
             },
 
@@ -84,11 +93,6 @@ define(['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip'],
                     this.$colorBar.css('background-color', this.model.get('Color'));
                     this.$titleLabel.html(this.model.get('Title'));
 
-                    this.$el.css({top:this.entryTop + 'px', bottom:this.entryBottom + 'px'});
-
-                    if (this.$el.hasClass('selected')) this.select();
-
-                    return this;
                 }
             },
 

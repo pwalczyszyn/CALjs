@@ -14,7 +14,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
             this.RESIZE_EV = 'onorientationchange' in window ? 'orientationchange' : 'resize';
 
             // If el is not specified by the user using div as parent element
-            if (!options) options = {el:'<div/>'};
+            if (!options) options = {el:'<div />'};
 
             // Calling base Component type constructor
             Component.call(this, options);
@@ -153,7 +153,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                             this.monthView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
                             this.monthView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
                             // Registering handler for container gesture events
-                            this.monthView.$el.on(this.MOUSE_DOWN_EV, {context:this}, this._container_mouseDownHandler);
+                            this.monthView.$el.on(this.MOUSE_DOWN_EV, this.bind(this._container_mouseDownHandler, this));
                             this.monthView.render();
                         }
 
@@ -269,7 +269,7 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                         touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
 
                     // Setting touch point X and Y
-                    this._container_mouseDownHandler.touchPoint = {
+                    that._container_mouseDownHandler.touchPoint = {
                         x:touchPoint.pageX,
                         y:touchPoint.pageY
                     };
@@ -279,8 +279,8 @@ define(['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!strip', 'utils/
                         var moveTarget = $(document);
 
                         // Adding move and up listeners
-                        moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, this._container_mouseMoveHandler);
-                        moveTarget.on(that.MOUSE_UP_EV, {context:that}, this._container_mouseUpHandler);
+                        moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, that._container_mouseMoveHandler);
+                        moveTarget.on(that.MOUSE_UP_EV, {context:that}, that._container_mouseUpHandler);
                     }
                 }
             },

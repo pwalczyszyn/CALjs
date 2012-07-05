@@ -1285,14 +1285,14 @@ define('WeekEntry',['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip']
 
             // Adding top selection bar if possible
             if (this.startDateTime.getTime() == this.model.get('StartDateTime').getTime()) {
-                this.$resizeBarTop = $('<cj:Handle />');
+                this.$resizeBarTop = $('<cj:TopHandle />');
             } else {
                 this.canDrag = false;
             }
 
             // Adding bottom selection bar if possible
             if (this.endDateTime.getTime() == this.model.get('EndDateTime').getTime()) {
-                this.$resizeBarBottom = $('<cj:Handle />');
+                this.$resizeBarBottom = $('<cj:BottomHandle />');
             }
 
             // Entry render function
@@ -1309,7 +1309,16 @@ define('WeekEntry',['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip']
 
             render:{
                 value:function render() {
-                    return this.renderFn.call(this);
+
+                    this.renderFn.call(this);
+
+                    // Position rendered entry
+                    this.$el.css({top:this.entryTop + 'px', bottom:this.entryBottom + 'px'});
+
+                    // Selecting this entry
+                    if (this.$el.hasClass('selected')) this.select();
+
+                    return this;
                 }
             },
 
@@ -1319,11 +1328,6 @@ define('WeekEntry',['EntryBase', 'utils/DateHelper', 'text!WeekEntry.tpl!strip']
                     this.$colorBar.css('background-color', this.model.get('Color'));
                     this.$titleLabel.html(this.model.get('Title'));
 
-                    this.$el.css({top:this.entryTop + 'px', bottom:this.entryBottom + 'px'});
-
-                    if (this.$el.hasClass('selected')) this.select();
-
-                    return this;
                 }
             },
 
@@ -1968,7 +1972,7 @@ define('WeekView',['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.
                         if (top < dayOffset.top)
                             top = dayOffset.top;
 
-                        this._drawTimeChangeMarkers({time:this._getNearestTime((top - dayOffset.top))});
+                        this._drawTimeChangeMarkers({time:this.getNearestTime((top - dayOffset.top))});
 
                         // Reseting weekChanged flag
                         this._entry_draggingHandler.weekChanged = false;
@@ -2039,7 +2043,7 @@ define('WeekView',['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.
                         if (top < dayOffset.top)
                             top = dayOffset.top;
 
-                        var snappedStartTime = this._getNearestTime(top - dayOffset.top);
+                        var snappedStartTime = this.getNearestTime(top - dayOffset.top);
 
                         var calEvent = event.target.model,
                         // Entry start date time
@@ -2231,7 +2235,7 @@ define('WeekView',['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.
                     var startingDateTime = bar == 'bottom' ? that.endDateTime : that.startDateTime,
                         startingPosition = bar == 'bottom' ? (24 * that.hourHeight - that.entryBottom) : that.entryTop;
 
-                    var snappedHour = this._getNearestTime(startingPosition),
+                    var snappedHour = this.getNearestTime(startingPosition),
                         result = new Date(startingDateTime);
                     result.setHours(
                         snappedHour.getHours(),
@@ -2244,8 +2248,8 @@ define('WeekView',['Component', 'WeekEntry', 'utils/DateHelper', 'text!WeekView.
                 }
             },
 
-            _getNearestTime:{
-                value:function _getNearestTime(from) {
+            getNearestTime:{
+                value:function getNearestTime(from) {
                     var that = this;
                     var hour = from / that.hourHeight * DateHelper.HOUR_MS,
                         modMs = hour % (DateHelper.HOUR_MS * 0.25);
@@ -2324,7 +2328,8 @@ define('MonthEntry',['EntryBase', 'utils/DateHelper', 'text!MonthEntry.tpl!strip
         MonthEntry.prototype = Object.create(EntryBase.prototype, {
             render:{
                 value:function render() {
-                    return this.renderFn.call(this);
+                    this.renderFn.call(this);
+                    return this;
                 }
             },
 
@@ -2333,7 +2338,6 @@ define('MonthEntry',['EntryBase', 'utils/DateHelper', 'text!MonthEntry.tpl!strip
                     this.$colorBar.css('background-color', this.model.get('Color'));
                     this.$titleLabel.html(this.model.get('Title'));
                     this.$startTime.html(DateHelper.format(this.model.get('StartDateTime'), 'HH:MM TT'));
-                    return this;
                 }
             },
 
@@ -2836,7 +2840,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
             this.RESIZE_EV = 'onorientationchange' in window ? 'orientationchange' : 'resize';
 
             // If el is not specified by the user using div as parent element
-            if (!options) options = {el:'<div/>'};
+            if (!options) options = {el:'<div />'};
 
             // Calling base Component type constructor
             Component.call(this, options);
@@ -2975,7 +2979,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                             this.monthView.on(Calendar.RANGE_CHANGED, this._currentView_rangeChangedHandler, this);
                             this.monthView.on(Calendar.CONTEXT_MENU, this._currentView_contextMenuHandler, this);
                             // Registering handler for container gesture events
-                            this.monthView.$el.on(this.MOUSE_DOWN_EV, {context:this}, this._container_mouseDownHandler);
+                            this.monthView.$el.on(this.MOUSE_DOWN_EV, this.bind(this._container_mouseDownHandler, this));
                             this.monthView.render();
                         }
 
@@ -3091,7 +3095,7 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                         touchesCount = (event.type.indexOf('touch') == 0) ? event.originalEvent.touches.length : 1;
 
                     // Setting touch point X and Y
-                    this._container_mouseDownHandler.touchPoint = {
+                    that._container_mouseDownHandler.touchPoint = {
                         x:touchPoint.pageX,
                         y:touchPoint.pageY
                     };
@@ -3101,8 +3105,8 @@ define('Calendar',['Component', 'WeekView', 'MonthView', 'text!Calendar.tpl!stri
                         var moveTarget = $(document);
 
                         // Adding move and up listeners
-                        moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, this._container_mouseMoveHandler);
-                        moveTarget.on(that.MOUSE_UP_EV, {context:that}, this._container_mouseUpHandler);
+                        moveTarget.on(that.MOUSE_MOVE_EV, {context:that}, that._container_mouseMoveHandler);
+                        moveTarget.on(that.MOUSE_UP_EV, {context:that}, that._container_mouseUpHandler);
                     }
                 }
             },
